@@ -1,5 +1,8 @@
 package com.alejandro.pdftool;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
@@ -7,10 +10,11 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 public class App {
     public static void main(String[] args) throws Exception {
-        if (args.length == 0 || Set.of("-h", "--help").contains(args[0])){
+        if (args.length == 0 || Set.of("-h", "--help").contains(args[0])) {
             printHelp();
             return;
         }
@@ -37,13 +41,35 @@ public class App {
     static void runMerge(String[] args) throws Exception {
         var list = List.of(args);
         var out = Optional.ofNullable(CliUtil.optValue(list, "-o")).map(Path::of)
-                .orElseThrow(() -> new IllegalArgumentException("Uso: merge -o <salida.pdf> <in1.pdf> <in2.pdf> [...]"));
+                .orElseThrow(() -> new IllegalArgumentException("Uso: merge -o <salida.pdf> <in1.pdf> <carpeta> [...]"));
         var inputs = IntStream.range(0, list.size())
                 .filter(i -> !list.get(i).equals("-o") && (i == 0 || !list.get(i - 1).equals("-o")))
                 .mapToObj(list::get)
                 .map(Path::of)
+                .flatMap(path -> {
+                    if (Files.isDirectory(path)) {
+                        try (Stream<Path> stream = Files.list(path)) {
+                            return stream
+                                    .filter(p -> p.toString().toLowerCase().endsWith(".pdf"))
+                                    .sorted()
+                                    .toList() // Convertimos a lista para cerrar el stream de archivos y seguir trabajando
+                                    .stream();
+                        } catch (IOException e) {
+                            throw new UncheckedIOException(e);
+                        }
+                    } else {
+                        return Stream.of(path);
+                    }
+                })
                 .toList();
+
+
+        if (inputs.isEmpty()) {
+            throw new IllegalArgumentException("No se encontraron archivos PDF para fusionar.");
+        }
+
         PdfOps.merge(inputs, out);
+        System.out.println("Se han fusionado " + inputs.size() + " archivos en: " + out);
     }
 
     static void runSplit(String[] args) throws Exception {
@@ -59,7 +85,8 @@ public class App {
     }
 
     static void runCompress(String[] args) throws Exception {
-        if (args.length < 3) throw new IllegalArgumentException("Uso: compress <in.pdf> -o <out.pdf> [-q 0.6] [--remove-metadata] [--max-dpi 150]");
+        if (args.length < 3)
+            throw new IllegalArgumentException("Uso: compress <in.pdf> -o <out.pdf> [-q 0.6] [--remove-metadata] [--max-dpi 150]");
         var list = List.of(args);
         var in = Path.of(list.getFirst());
         var out = Optional.ofNullable(CliUtil.optValue(list, "-o")).map(Path::of)
@@ -72,7 +99,8 @@ public class App {
 
     static void runRotate(String[] args) throws Exception {
         var list = List.of(args);
-        if (list.size() < 4) throw new IllegalArgumentException("Uso: rotate <in.pdf> -o <out.pdf> -deg <90|180|270> [-pages \"1-3,5\"]");
+        if (list.size() < 4)
+            throw new IllegalArgumentException("Uso: rotate <in.pdf> -o <out.pdf> -deg <90|180|270> [-pages \"1-3,5\"]");
         var in = Path.of(list.getFirst());
         var out = Optional.ofNullable(CliUtil.optValue(list, "-o")).map(Path::of)
                 .orElseThrow(() -> new IllegalArgumentException("Debe indicar -o <out.pdf>"));
@@ -85,8 +113,9 @@ public class App {
 
     static void runWatermark(String[] args) throws Exception {
         var list = List.of(args);
-        if (list.size() < 4) throw new IllegalArgumentException("Uso: watermark <in.pdf> -o <out.pdf> -text \"CONFIDENTIAL\" [-opacity 0.2]");
-        var in = Path.of(list.get(0));
+        if (list.size() < 4)
+            throw new IllegalArgumentException("Uso: watermark <in.pdf> -o <out.pdf> -text \"CONFIDENTIAL\" [-opacity 0.2]");
+        var in = Path.of(list.getFirst());
         var out = Optional.ofNullable(CliUtil.optValue(list, "-o")).map(Path::of)
                 .orElseThrow(() -> new IllegalArgumentException("Debe indicar -o <out.pdf>"));
         var text = Optional.ofNullable(CliUtil.optValue(list, "-text"))
@@ -98,7 +127,7 @@ public class App {
     static void runText(String[] args) throws Exception {
         var list = List.of(args);
         if (list.isEmpty()) throw new IllegalArgumentException("Uso: text <in.pdf> [-o <out.txt>]");
-        var in = Path.of(list.get(0));
+        var in = Path.of(list.getFirst());
         var out = Optional.ofNullable(CliUtil.optValue(list, "-o")).map(Path::of).orElse(null);
         PdfOps.extractText(in, out);
     }
@@ -111,7 +140,8 @@ public class App {
 
     static void runEncrypt(String[] args) throws Exception {
         var list = List.of(args);
-        if (list.size() < 5) throw new IllegalArgumentException("Uso: encrypt <in.pdf> -o <out.pdf> -ownerPwd <pwd> [-userPwd <pwd>] [-perm print,copy]");
+        if (list.size() < 5)
+            throw new IllegalArgumentException("Uso: encrypt <in.pdf> -o <out.pdf> -ownerPwd <pwd> [-userPwd <pwd>] [-perm print,copy]");
         var in = Path.of(list.getFirst());
         var out = Optional.ofNullable(CliUtil.optValue(list, "-o")).map(Path::of)
                 .orElseThrow(() -> new IllegalArgumentException("Debe indicar -o <out.pdf>"));
@@ -138,7 +168,7 @@ public class App {
     static void printHelp() {
         System.out.println("""
                 PDF Tool - comandos:
-                  merge -o <out.pdf> <in1.pdf> <in2.pdf> [...]
+                  merge -o <out.pdf> <in1.pdf> <carpeta> [...]  (Acepta archivos y/o carpetas)
                   split <in.pdf> -ranges "1-3,7,10-*" -o <prefix>
                   compress <in.pdf> -o <out.pdf> [-q 0.6] [--max-dpi 150] [--remove-metadata]
                   rotate <in.pdf> -o <out.pdf> -deg <90|180|270> [-pages "1-3,5"]

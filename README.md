@@ -38,7 +38,7 @@ Si llamas sin argumentos, o con `-h`/`--help`, verás el resumen de comandos:
 
 ```
 PDF Tool - comandos:
-  merge -o <out.pdf> <in1.pdf> <in2.pdf> [...]
+  merge -o <out.pdf> <in1.pdf> <carpeta> [...]  (Acepta archivos y/o carpetas)
   split <in.pdf> -ranges "1-3,7,10-*" -o <prefix>
   compress <in.pdf> -o <out.pdf> [-q 0.6] [--max-dpi 150] [--remove-metadata]
   rotate <in.pdf> -o <out.pdf> -deg <90|180|270> [-pages "1-3,5"]
@@ -53,11 +53,20 @@ PDF Tool - comandos:
 ## Comandos y ejemplos
 A continuación, cada comando con su sintaxis y ejemplos prácticos.
 
-### 1) merge — unir varios PDFs
-- Sintaxis: `merge -o <salida.pdf> <in1.pdf> <in2.pdf> [...]`
-- Ejemplo:
+### 1) merge — unir varios PDFs o carpetas
+- Sintaxis: `merge -o <salida.pdf> <in1.pdf> <carpeta> [...]`
+  - Acepta tanto archivos PDF individuales como rutas a carpetas.
+  - Si se indica una carpeta, se añaden todos los archivos `.pdf` de su interior ordenados alfabéticamente.
+- Ejemplos:
   ```powershell
-  java -jar .\target\pdf-tool-1.0-SNAPSHOT.jar merge -o .\salida\unido.pdf .\docs\a.pdf .\docs\b.pdf .\docs\c.pdf
+  # Mezclando archivos individuales
+  java -jar .\target\pdf-tool-1.0-SNAPSHOT.jar merge -o .\salida\unido.pdf .\docs\a.pdf .\docs\b.pdf
+
+  # Uniendo todos los PDFs de una carpeta
+  java -jar .\target\pdf-tool-1.0-SNAPSHOT.jar merge -o .\salida\unido.pdf .\docs\carpeta_pdfs
+
+  # Uso mixto
+  java -jar .\target\pdf-tool-1.0-SNAPSHOT.jar merge -o .\salida\final.pdf portada.pdf .\docs\contenido anexo.pdf
   ```
 
 ### 2) split — dividir por rangos de páginas
