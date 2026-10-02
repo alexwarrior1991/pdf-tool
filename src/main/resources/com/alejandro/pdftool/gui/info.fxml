@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<ScrollPane fitToWidth="true" styleClass="page-scroll" stylesheets="@app.css" xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.alejandro.pdftool.gui.views.InfoController">
+    <VBox spacing="16" styleClass="page">
+        <VBox spacing="4">
+            <Label styleClass="view-title" text="Información y metadatos"/>
+            <Label styleClass="view-description" wrapText="true"
+                   text="Consulta los datos de un PDF y cambia su título, autor, asunto y palabras clave (los que muestran los visores y buscadores)."/>
+        </VBox>
+        <VBox spacing="10" styleClass="section">
+            <Label styleClass="section-label" text="1. PDF"/>
+            <fx:include fx:id="input" source="file-field.fxml"/>
+            <Label fx:id="loadStatus" styleClass="field-hint"/>
+        </VBox>
+        <VBox fx:id="detailsBox" spacing="16">
+            <VBox spacing="10" styleClass="section">
+                <Label styleClass="section-label" text="2. Documento"/>
+                <HBox spacing="24">
+                    <GridPane hgap="16" styleClass="info-grid" vgap="8" HBox.hgrow="ALWAYS">
+                        <columnConstraints>
+                            <ColumnConstraints minWidth="150"/>
+                            <ColumnConstraints hgrow="ALWAYS"/>
+                        </columnConstraints>
+                        <Label styleClass="info-key" text="Páginas" GridPane.rowIndex="0"/>
+                        <Label fx:id="pagesValue" styleClass="info-value" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                        <Label styleClass="info-key" text="Tamaño de página" GridPane.rowIndex="1"/>
+                        <Label fx:id="pageSizeValue" styleClass="info-value" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+                        <Label styleClass="info-key" text="Tamaño del archivo" GridPane.rowIndex="2"/>
+                        <Label fx:id="fileSizeValue" styleClass="info-value" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+                        <Label styleClass="info-key" text="Versión" GridPane.rowIndex="3"/>
+                        <Label fx:id="versionValue" styleClass="info-value" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+                        <Label styleClass="info-key" text="Seguridad" GridPane.rowIndex="4"/>
+                        <Label fx:id="securityValue" styleClass="info-value" wrapText="true" GridPane.columnIndex="1"
+                               GridPane.rowIndex="4"/>
+                        <Label styleClass="info-key" text="Creado con" GridPane.rowIndex="5"/>
+                        <Label fx:id="creatorValue" styleClass="info-value" wrapText="true" GridPane.columnIndex="1"
+                               GridPane.rowIndex="5"/>
+                        <Label styleClass="info-key" text="Generado por" GridPane.rowIndex="6"/>
+                        <Label fx:id="producerValue" styleClass="info-value" wrapText="true" GridPane.columnIndex="1"
+                               GridPane.rowIndex="6"/>
+                        <Label styleClass="info-key" text="Creación" GridPane.rowIndex="7"/>
+                        <Label fx:id="createdValue" styleClass="info-value" GridPane.columnIndex="1" GridPane.rowIndex="7"/>
+                        <Label styleClass="info-key" text="Última modificación" GridPane.rowIndex="8"/>
+                        <Label fx:id="modifiedValue" styleClass="info-value" GridPane.columnIndex="1" GridPane.rowIndex="8"/>
+                    </GridPane>
+                    <StackPane minWidth="160" styleClass="thumbnail-frame" maxHeight="-Infinity" maxWidth="-Infinity">
+                        <ImageView fx:id="coverView" fitHeight="210" fitWidth="150" pickOnBounds="true" preserveRatio="true"/>
+                    </StackPane>
+                </HBox>
+            </VBox>
+            <VBox spacing="10" styleClass="section">
+                <Label styleClass="section-label" text="3. Metadatos (puedes cambiarlos)"/>
+                <GridPane hgap="12" vgap="10">
+                    <columnConstraints>
+                        <ColumnConstraints minWidth="120"/>
+                        <ColumnConstraints hgrow="ALWAYS"/>
+                    </columnConstraints>
+                    <Label styleClass="field-label" text="Título:" GridPane.rowIndex="0"/>
+                    <TextField fx:id="titleField" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                    <Label styleClass="field-label" text="Autor:" GridPane.rowIndex="1"/>
+                    <TextField fx:id="authorField" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+                    <Label styleClass="field-label" text="Asunto:" GridPane.rowIndex="2"/>
+                    <TextField fx:id="subjectField" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+                    <Label styleClass="field-label" text="Palabras clave:" GridPane.rowIndex="3"/>
+                    <TextField fx:id="keywordsField" promptText="separadas por comas" GridPane.columnIndex="1"
+                               GridPane.rowIndex="3"/>
+                </GridPane>
+                <Label styleClass="field-hint" text="Deja un campo vacío para borrarlo."/>
+            </VBox>
+            <VBox spacing="10" styleClass="section">
+                <Label styleClass="section-label" text="4. Dónde guardar"/>
+                <fx:include fx:id="output" source="file-field.fxml"/>
+                <Label styleClass="field-hint" text="Puedes elegir el mismo archivo para sobrescribirlo (se pedirá confirmación)."/>
+            </VBox>
+            <fx:include fx:id="runBar" source="run-bar.fxml"/>
+        </VBox>
+    </VBox>
+</ScrollPane>

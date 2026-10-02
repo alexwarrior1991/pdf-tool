@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.ColorPicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Slider?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Text?>
+
+<ScrollPane fitToWidth="true" styleClass="page-scroll" stylesheets="@app.css" xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.alejandro.pdftool.gui.views.WatermarkController">
+    <VBox spacing="16" styleClass="page">
+        <VBox spacing="4">
+            <Label styleClass="view-title" text="Marca de agua"/>
+            <Label styleClass="view-description" wrapText="true"
+                   text="Escribe un texto en diagonal sobre todas las páginas, por ejemplo BORRADOR o CONFIDENCIAL. Se ajusta solo al tamaño y la orientación de cada página."/>
+        </VBox>
+        <VBox spacing="10" styleClass="section">
+            <Label styleClass="section-label" text="1. PDF"/>
+            <fx:include fx:id="input" source="file-field.fxml"/>
+        </VBox>
+        <VBox spacing="10" styleClass="section">
+            <Label styleClass="section-label" text="2. Texto y aspecto"/>
+            <HBox spacing="28">
+                <GridPane hgap="12" vgap="12" HBox.hgrow="ALWAYS">
+                    <columnConstraints>
+                        <ColumnConstraints minWidth="90"/>
+                        <ColumnConstraints hgrow="ALWAYS"/>
+                    </columnConstraints>
+                    <Label styleClass="field-label" text="Texto:" GridPane.rowIndex="0"/>
+                    <TextField fx:id="textField" text="CONFIDENCIAL" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                    <Label styleClass="field-label" text="Opacidad:" GridPane.rowIndex="1"/>
+                    <HBox alignment="CENTER_LEFT" spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                        <Slider fx:id="opacitySlider" blockIncrement="5" max="100" min="5" prefWidth="260" value="20"/>
+                        <Label fx:id="opacityLabel" minWidth="50" text="20 %"/>
+                    </HBox>
+                    <Label styleClass="field-label" text="Color:" GridPane.rowIndex="2"/>
+                    <ColorPicker fx:id="colorPicker" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+                    <Label styleClass="field-hint" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="3"
+                           text="Admite letras con tilde, ñ, € y otros caracteres del español; no emojis ni alfabetos no latinos."/>
+                </GridPane>
+                <VBox alignment="TOP_CENTER" spacing="6">
+                    <StackPane maxHeight="238" maxWidth="168" minHeight="238" minWidth="168"
+                               style="-fx-background-color: white; -fx-border-color: #c9d0da; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.12), 6, 0, 0, 2);">
+                        <Text fx:id="previewText" rotate="-45" text="CONFIDENCIAL"/>
+                    </StackPane>
+                    <Label styleClass="field-hint" text="Vista previa aproximada"/>
+                </VBox>
+            </HBox>
+        </VBox>
+        <VBox spacing="10" styleClass="section">
+            <Label styleClass="section-label" text="3. Dónde guardar el resultado"/>
+            <fx:include fx:id="output" source="file-field.fxml"/>
+        </VBox>
+        <fx:include fx:id="runBar" source="run-bar.fxml"/>
+    </VBox>
+</ScrollPane>

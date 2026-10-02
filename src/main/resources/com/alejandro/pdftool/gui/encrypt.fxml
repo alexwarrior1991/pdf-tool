@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.VBox?>
+
+<ScrollPane fitToWidth="true" styleClass="page-scroll" stylesheets="@app.css" xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.alejandro.pdftool.gui.views.EncryptController">
+    <VBox spacing="16" styleClass="page">
+        <VBox spacing="4">
+            <Label styleClass="view-title" text="Proteger con contraseña"/>
+            <Label styleClass="view-description" wrapText="true"
+                   text="Cifra el PDF con AES-256 y decide qué puede hacer quien lo abra. El original no se modifica."/>
+        </VBox>
+        <VBox spacing="10" styleClass="section">
+            <Label styleClass="section-label" text="1. PDF"/>
+            <fx:include fx:id="input" source="file-field.fxml"/>
+        </VBox>
+        <VBox spacing="10" styleClass="section">
+            <Label styleClass="section-label" text="2. Contraseñas"/>
+            <GridPane hgap="12" vgap="10">
+                <columnConstraints>
+                    <ColumnConstraints minWidth="250"/>
+                    <ColumnConstraints minWidth="200" prefWidth="260"/>
+                    <ColumnConstraints minWidth="200" prefWidth="260"/>
+                </columnConstraints>
+                <Label styleClass="field-label" text="Para abrir el documento (opcional):" GridPane.rowIndex="0"/>
+                <PasswordField fx:id="userPassword" promptText="Contraseña" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                <PasswordField fx:id="userPasswordRepeat" promptText="Repítela" GridPane.columnIndex="2"
+                               GridPane.rowIndex="0"/>
+                <Label styleClass="field-label" text="De propietario (obligatoria):" GridPane.rowIndex="1"/>
+                <PasswordField fx:id="ownerPassword" promptText="Contraseña" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+                <PasswordField fx:id="ownerPasswordRepeat" promptText="Repítela" GridPane.columnIndex="2"
+                               GridPane.rowIndex="1"/>
+            </GridPane>
+            <Label styleClass="field-hint" wrapText="true"
+                   text="Si pones contraseña de apertura, se pedirá para ver el PDF. La de propietario permite cambiar los permisos o quitar la protección: guárdala en un lugar seguro."/>
+        </VBox>
+        <VBox spacing="10" styleClass="section">
+            <Label styleClass="section-label" text="3. Qué se permite a quien abra el PDF"/>
+            <FlowPane fx:id="permissionsPane" hgap="16" vgap="10"/>
+            <Label styleClass="field-hint" text="Lo que no marques quedará bloqueado (la lectura para personas con discapacidad siempre se permite)."
+                   wrapText="true"/>
+        </VBox>
+        <VBox spacing="10" styleClass="section">
+            <Label styleClass="section-label" text="4. Dónde guardar el PDF protegido"/>
+            <fx:include fx:id="output" source="file-field.fxml"/>
+        </VBox>
+        <fx:include fx:id="runBar" source="run-bar.fxml"/>
+    </VBox>
+</ScrollPane>

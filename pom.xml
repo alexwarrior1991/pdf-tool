@@ -13,7 +13,12 @@
         <maven.compiler.target>21</maven.compiler.target>
         <maven.compiler.release>21</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <pdfbox.version>3.0.2</pdfbox.version>
+        <pdfbox.version>3.0.8</pdfbox.version>
+        <!-- JavaFX 21 LTS (compatible con JDK 21). Maven elige automáticamente los binarios del SO que compila;
+             para generar el JAR de otro sistema: -Djavafx.platform=win | mac | mac-aarch64 | linux -->
+        <javafx.version>21.0.12</javafx.version>
+        <junit.version>5.14.4</junit.version>
+        <main.class>com.alejandro.pdftool.App</main.class>
     </properties>
 
     <dependencies>
@@ -27,6 +32,12 @@
             <artifactId>fontbox</artifactId>
             <version>${pdfbox.version}</version>
         </dependency>
+        <!-- Lectura/escritura de metadatos XMP (editar metadatos) -->
+        <dependency>
+            <groupId>org.apache.pdfbox</groupId>
+            <artifactId>xmpbox</artifactId>
+            <version>${pdfbox.version}</version>
+        </dependency>
         <!-- Para encriptación avanzada/validación de firmas (opcional)
         <dependency>
           <groupId>org.apache.pdfbox</groupId>
@@ -34,6 +45,25 @@
           <version>${pdfbox.version}</version>
           <optional>true</optional>
         </dependency> -->
+
+        <!-- Interfaz gráfica -->
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-controls</artifactId>
+            <version>${javafx.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-fxml</artifactId>
+            <version>${javafx.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
 
@@ -50,6 +80,30 @@
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.5.6</version>
+                <configuration>
+                    <systemPropertyVariables>
+                        <java.awt.headless>true</java.awt.headless>
+                        <!-- La caché de fuentes de PDFBox de los tests va a target/ y no al HOME -->
+                        <pdfbox.fontcache>${project.build.directory}</pdfbox.fontcache>
+                    </systemPropertyVariables>
+                </configuration>
+            </plugin>
+
+            <!-- mvn javafx:run → abre la interfaz gráfica sin empaquetar -->
+            <plugin>
+                <groupId>org.openjfx</groupId>
+                <artifactId>javafx-maven-plugin</artifactId>
+                <version>0.0.8</version>
+                <configuration>
+                    <mainClass>${main.class}</mainClass>
+                    <executable>${java.home}/bin/java</executable>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
                 <version>3.5.3</version>
                 <executions>
@@ -59,12 +113,26 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
-                            <createDependencyReducedPom>true</createDependencyReducedPom>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>module-info.class</exclude>
+                                        <exclude>META-INF/versions/*/module-info.class</exclude>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
                             <transformers>
                                 <transformer
                                         implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>com.alejandro.pdftool.App</mainClass>
+                                    <mainClass>${main.class}</mainClass>
                                 </transformer>
+                                <transformer
+                                        implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
                             </transformers>
                         </configuration>
                     </execution>

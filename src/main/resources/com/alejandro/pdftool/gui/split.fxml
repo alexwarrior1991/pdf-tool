@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.RadioButton?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Spinner?>
+<?import javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToggleGroup?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<ScrollPane fitToWidth="true" styleClass="page-scroll" stylesheets="@app.css" xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.alejandro.pdftool.gui.views.SplitController">
+    <VBox spacing="16" styleClass="page">
+        <fx:define>
+            <ToggleGroup fx:id="mode"/>
+        </fx:define>
+        <VBox spacing="4">
+            <Label styleClass="view-title" text="Dividir PDF"/>
+            <Label styleClass="view-description" wrapText="true"
+                   text="Separa un PDF en varios archivos: por rangos de páginas o en partes del mismo tamaño."/>
+        </VBox>
+        <VBox spacing="10" styleClass="section">
+            <Label styleClass="section-label" text="1. PDF que quieres dividir"/>
+            <fx:include fx:id="input" source="file-field.fxml"/>
+            <fx:include fx:id="thumbnails" source="thumbnails.fxml"/>
+        </VBox>
+        <VBox spacing="10" styleClass="section">
+            <Label styleClass="section-label" text="2. Cómo dividirlo"/>
+            <RadioButton fx:id="byRanges" mnemonicParsing="false" selected="true" text="Por rangos de páginas (cada rango será un archivo)"
+                         toggleGroup="$mode"/>
+            <VBox spacing="4" style="-fx-padding: 0 0 0 26;">
+                <TextField fx:id="rangesField" promptText="Por ejemplo: 1-3, 4-10, 11-*"/>
+                <Label styleClass="field-hint" text="Separa los rangos con comas. El * significa «hasta el final»."/>
+            </VBox>
+            <RadioButton fx:id="byCount" mnemonicParsing="false" text="En partes de un número fijo de páginas"
+                         toggleGroup="$mode"/>
+            <HBox alignment="CENTER_LEFT" spacing="8" style="-fx-padding: 0 0 0 26;">
+                <Label styleClass="field-label" text="Páginas por parte:"/>
+                <Spinner fx:id="everySpinner" editable="true" prefWidth="100">
+                    <valueFactory>
+                        <SpinnerValueFactory.IntegerSpinnerValueFactory initialValue="1" max="100000" min="1"/>
+                    </valueFactory>
+                </Spinner>
+                <Label styleClass="field-hint" text="(1 = un archivo por página)"/>
+            </HBox>
+        </VBox>
+        <VBox spacing="10" styleClass="section">
+            <Label styleClass="section-label" text="3. Dónde guardar las partes"/>
+            <fx:include fx:id="folder" source="file-field.fxml"/>
+            <HBox alignment="CENTER_LEFT" spacing="8">
+                <Label styleClass="field-label" text="Nombre base:"/>
+                <TextField fx:id="baseNameField" prefColumnCount="24" promptText="informe" HBox.hgrow="ALWAYS"/>
+            </HBox>
+            <Label fx:id="exampleLabel" styleClass="field-hint"/>
+        </VBox>
+        <fx:include fx:id="runBar" source="run-bar.fxml"/>
+    </VBox>
+</ScrollPane>

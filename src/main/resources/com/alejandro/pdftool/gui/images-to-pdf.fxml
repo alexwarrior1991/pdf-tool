@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Spinner?>
+<?import javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<ScrollPane fitToWidth="true" styleClass="page-scroll" stylesheets="@app.css" xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.alejandro.pdftool.gui.views.ImagesToPdfController">
+    <VBox spacing="16" styleClass="page">
+        <VBox spacing="4">
+            <Label styleClass="view-title" text="Imágenes a PDF"/>
+            <Label styleClass="view-description" wrapText="true"
+                   text="Convierte fotos y escaneos en un único PDF, una imagen por página. Las fotos JPG se incluyen sin perder calidad y las del móvil se enderezan solas según su orientación."/>
+        </VBox>
+        <VBox spacing="10" styleClass="section">
+            <Label styleClass="section-label" text="1. Imágenes (JPG, PNG, GIF, BMP o TIFF)"/>
+            <fx:include fx:id="images" source="file-list.fxml"/>
+        </VBox>
+        <VBox spacing="10" styleClass="section">
+            <Label styleClass="section-label" text="2. Página"/>
+            <HBox alignment="CENTER_LEFT" spacing="10">
+                <Label styleClass="field-label" text="Tamaño:"/>
+                <ComboBox fx:id="pageSizeBox" prefWidth="220"/>
+                <Label styleClass="field-label" style="-fx-padding: 0 0 0 18;" text="Margen:"/>
+                <Spinner fx:id="marginSpinner" editable="true" prefWidth="90">
+                    <valueFactory>
+                        <SpinnerValueFactory.IntegerSpinnerValueFactory initialValue="10" max="60" min="0"/>
+                    </valueFactory>
+                </Spinner>
+                <Label styleClass="field-hint" text="mm"/>
+            </HBox>
+            <Label styleClass="field-hint" wrapText="true"
+                   text="Con A4 o Carta cada imagen se ajusta y centra en la hoja (en horizontal si la imagen es apaisada). «Tamaño de cada imagen» crea páginas a la medida de la foto."/>
+        </VBox>
+        <VBox spacing="10" styleClass="section">
+            <Label styleClass="section-label" text="3. Dónde guardar el PDF"/>
+            <fx:include fx:id="output" source="file-field.fxml"/>
+        </VBox>
+        <fx:include fx:id="runBar" source="run-bar.fxml"/>
+    </VBox>
+</ScrollPane>
