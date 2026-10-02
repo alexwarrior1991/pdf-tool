@@ -1,285 +1,283 @@
 # PDF Tool
 
-Utilidad para trabajar con PDFs usando Apache PDFBox, con **interfaz gráfica (JavaFX)** y **línea de comandos (CLI)**.
-Permite: unir, dividir, extraer o eliminar páginas, rotar, comprimir imágenes, añadir marca de agua, numerar páginas,
-convertir imágenes en PDF y PDF en imágenes, extraer texto, ver y editar metadatos, y proteger o desproteger con
-contraseña.
+A PDF utility built on Apache PDFBox, with a **graphical interface (JavaFX)** and a **command line (CLI)**.
+It can merge, split, extract or delete pages, rotate, compress images, add a watermark, number pages, convert
+images to PDF and PDF to images, extract text, view and edit metadata, and add or remove password protection.
 
 
-## Requisitos
-- Java 21 o superior
-- Maven 3.8+ (para compilar)
+## Requirements
+- Java 21 or later
+- Maven 3.8+ (to build)
 
 
-## Compilación y generación del JAR
-En la raíz del proyecto:
+## Building the JAR
+From the project root:
 
 ```bash
 mvn clean package
 ```
 
-El JAR quedará en `target/pdf-tool-1.0-SNAPSHOT.jar` (y también `target/original-pdf-tool-1.0-SNAPSHOT.jar`, sin
-dependencias). El JAR incluye JavaFX para el sistema operativo en el que se compila: un JAR generado en Windows abre
-la interfaz en Windows. La parte de línea de comandos funciona en cualquier sistema. Para generar el JAR de otro
-sistema añade `-Djavafx.platform=win`, `mac`, `mac-aarch64` o `linux`.
+The JAR ends up in `target/pdf-tool-1.0-SNAPSHOT.jar` (plus `target/original-pdf-tool-1.0-SNAPSHOT.jar`, without
+dependencies). The JAR bundles JavaFX for the operating system it is built on: a JAR built on Windows opens the
+interface on Windows. The command line works on any system. To build the JAR for another system add
+`-Djavafx.platform=win`, `mac`, `mac-aarch64` or `linux`.
 
 
-## Interfaz gráfica
-Para abrirla, cualquiera de estas opciones:
+## Graphical interface
+To open it, use any of these:
 
-- Doble clic en `pdf-tool-1.0-SNAPSHOT.jar` (si los `.jar` están asociados a Java 21).
-- `java -jar target/pdf-tool-1.0-SNAPSHOT.jar` (sin argumentos) o `java -jar target/pdf-tool-1.0-SNAPSHOT.jar gui`.
-- Durante el desarrollo, sin empaquetar: `mvn javafx:run`.
+- Double-click `pdf-tool-1.0-SNAPSHOT.jar` (if `.jar` files are associated with Java 21).
+- `java -jar target/pdf-tool-1.0-SNAPSHOT.jar` (no arguments) or `java -jar target/pdf-tool-1.0-SNAPSHOT.jar gui`.
+- During development, without packaging: `mvn javafx:run`.
 
-La ventana tiene una barra lateral con todas las herramientas, agrupadas en Organizar, Convertir, Editar, Seguridad
-y Documento, y una pantalla de inicio con una tarjeta por herramienta:
+The window has a sidebar with every tool, grouped into Organize, Convert, Edit, Security and Document, and a home
+screen with one card per tool:
 
-| Pantalla | Qué hace |
+| Screen | What it does |
 |---|---|
-| Unir PDF | Lista ordenable de PDFs (o carpetas enteras) que se combinan en uno. |
-| Dividir PDF | Por rangos (`1-3, 4-10, 11-*`) o en partes de N páginas. |
-| Extraer o eliminar páginas | Haz clic en las miniaturas o escribe rangos; para extraer en otro orden escribe `5, 1-3`. |
-| Rotar páginas | 90° a la derecha, 180° o 90° a la izquierda, en todas o en algunas páginas. Las miniaturas muestran el giro. |
-| Imágenes a PDF | JPG, PNG, GIF, BMP o TIFF → un PDF (A4, Carta o tamaño de la imagen). |
-| PDF a imágenes | Páginas → PNG o JPG con la resolución elegida. |
-| Extraer texto | Muestra el texto, lo copia al portapapeles o lo guarda como `.txt`. |
-| Comprimir | Preajustes (Alta calidad, Equilibrado, Máxima compresión) o calidad y resolución a medida. |
-| Marca de agua | Texto en diagonal con opacidad y color, con vista previa. |
-| Numerar páginas | «Página 1 de 10» u otro formato, en 6 posiciones; puede saltarse la portada. |
-| Proteger con contraseña | AES-256 con contraseña de apertura opcional, de propietario y permisos. |
-| Quitar contraseña | Copia sin protección (con la contraseña de propietario). |
-| Información y metadatos | Páginas, tamaño, versión, permisos, fechas… y edición de título, autor, asunto y palabras clave. |
+| Merge PDFs | Sortable list of PDFs (or whole folders) combined into one. |
+| Split PDF | By ranges (`1-3, 4-10, 11-*`) or into parts of N pages. |
+| Extract or delete pages | Click the thumbnails or type ranges; to extract in another order type `5, 1-3`. |
+| Rotate pages | 90° right, 180° or 90° left, on all pages or some. The thumbnails preview the rotation. |
+| Images to PDF | JPG, PNG, GIF, BMP or TIFF → one PDF (A4, Letter or image size). |
+| PDF to images | Pages → PNG or JPG at the chosen resolution. |
+| Extract text | Shows the text, copies it to the clipboard or saves it as `.txt`. |
+| Compress | Presets (High quality, Balanced, Smallest size) or custom quality and resolution. |
+| Watermark | Diagonal text with opacity and color, with a preview. |
+| Page numbers | "Page 1 of 10" or another format, in 6 positions; can skip the cover page. |
+| Protect with password | AES-256 with an optional open password, an owner password and permissions. |
+| Remove password | Unprotected copy (needs the owner password). |
+| Info & metadata | Pages, size, version, permissions, dates… and editing of title, author, subject and keywords. |
 
-Funcionamiento común a todas las pantallas:
+Common to every screen:
 
-- Los archivos se pueden **arrastrar y soltar** sobre cada campo o lista, o elegir con «Examinar…». Se recuerda la
-  última carpeta usada.
-- Al elegir un PDF se muestra su número de páginas y tamaño y, en las pantallas que lo necesitan, sus **miniaturas**.
-- La salida se propone automáticamente junto al original (`informe_rotado.pdf`, `informe_comprimido.pdf`…) sin pisar
-  archivos existentes. Si escribes una ruta que ya existe, se pide confirmación antes de reemplazarla.
-- Las operaciones se ejecutan en segundo plano con barra de progreso. Al terminar aparece un aviso con botones para
-  **abrir el archivo o la carpeta** resultante; si algo falla, un mensaje claro y un enlace «Detalles» con la
-  información técnica.
-- El PDF original nunca se modifica, salvo que elijas sobrescribirlo. Las salidas se escriben primero en un archivo
-  temporal, así que un error nunca deja un PDF a medias.
+- Files can be **dragged and dropped** onto each field or list, or chosen with "Browse…". The last folder used is
+  remembered.
+- When you pick a PDF its page count and size are shown and, on the screens that need them, its **thumbnails**.
+- The output is suggested automatically next to the original (`report_rotated.pdf`, `report_compressed.pdf`…)
+  without overwriting existing files. If you type a path that already exists, you are asked before it is replaced.
+- Operations run in the background with a progress bar. When they finish, a banner offers buttons to **open the
+  resulting file or folder**; if something fails, a clear message and a "Details" link with the technical
+  information.
+- The original PDF is never modified unless you choose to overwrite it. Outputs are written to a temporary file
+  first, so an error never leaves a half-written PDF.
 
-### Editar las pantallas con Scene Builder
-Las pantallas están en FXML, en `src/main/resources/com/alejandro/pdftool/gui/`:
+### Editing the screens with Scene Builder
+The screens are FXML files in `src/main/resources/com/alejandro/pdftool/gui/`:
 
-- `main.fxml`: ventana principal (barra lateral y pantalla de inicio). Cada botón de la barra lleva en `userData` el
-  nombre del FXML de su pantalla (`merge` → `merge.fxml`).
-- Una pantalla por herramienta: `merge.fxml`, `split.fxml`, `pages.fxml`, `rotate.fxml`, `compress.fxml`,
+- `main.fxml`: main window (sidebar and home screen). Each sidebar button stores in `userData` the name of its
+  screen's FXML (`merge` → `merge.fxml`).
+- One screen per tool: `merge.fxml`, `split.fxml`, `pages.fxml`, `rotate.fxml`, `compress.fxml`,
   `watermark.fxml`, `page-numbers.fxml`, `images-to-pdf.fxml`, `pdf-to-images.fxml`, `text.fxml`, `info.fxml`,
-  `encrypt.fxml` y `decrypt.fxml`.
-- Componentes reutilizables que las pantallas incluyen con `fx:include`: `file-field.fxml` (campo de archivo),
-  `file-list.fxml` (lista de archivos), `run-bar.fxml` (botón principal, progreso y avisos) y `thumbnails.fxml`
-  (miniaturas).
-- `app.css`: estilos. Cada FXML lo referencia para que Scene Builder muestre la vista previa con el aspecto real.
+  `encrypt.fxml` and `decrypt.fxml`.
+- Reusable components that the screens include with `fx:include`: `file-field.fxml` (file field),
+  `file-list.fxml` (file list), `run-bar.fxml` (main button, progress and banners) and `thumbnails.fxml`
+  (thumbnails).
+- `app.css`: styles. Every FXML references it so Scene Builder previews it with the real look.
 
-Todos los FXML usan solo controles estándar de JavaFX, así que Scene Builder los abre directamente. Están en una
-misma carpeta para que los `fx:include` funcionen igual en Scene Builder y dentro del JAR. Los controladores están
-en `com.alejandro.pdftool.gui` (`views/` para las pantallas y `components/` para los componentes). Si cambias un
-`fx:id` o un método `onAction`, cámbialo también en el controlador; `GuiSmokeTest` carga todas las pantallas y avisa
-si algo no casa.
+All FXML files use only standard JavaFX controls, so Scene Builder opens them directly. They live in a single
+folder so `fx:include` works the same in Scene Builder and inside the JAR. The controllers are in
+`com.alejandro.pdftool.gui` (`views/` for the screens and `components/` for the components). If you change an
+`fx:id` or an `onAction` method, change it in the controller too; `GuiSmokeTest` loads every screen and reports any
+mismatch.
 
 
-## Línea de comandos
+## Command line
 
-### Ayuda integrada
-Con `-h`/`--help` verás el resumen de comandos:
+### Built-in help
+`-h`/`--help` prints the command summary:
 
 ```
-PDF Tool - comandos:
-  (sin argumentos)  abre la interfaz gráfica; también: gui
-  merge -o <out.pdf> <in1.pdf> <carpeta> [...]  (Acepta archivos y/o carpetas)
+PDF Tool - commands:
+  (no arguments)  opens the graphical interface; also: gui
+  merge -o <out.pdf> <in1.pdf> <folder> [...]  (accepts files and/or folders)
   split <in.pdf> -ranges "1-3,7,10-*" -o <prefix>   |   split <in.pdf> -every <N> -o <prefix>
-  extract <in.pdf> -o <out.pdf> -pages "5,1-3"      (en el orden indicado)
+  extract <in.pdf> -o <out.pdf> -pages "5,1-3"      (in the given order)
   delete <in.pdf> -o <out.pdf> -pages "2,5-7"
   compress <in.pdf> -o <out.pdf> [-q 0.6] [--max-dpi 150] [--remove-metadata]
   rotate <in.pdf> -o <out.pdf> -deg <90|180|270> [-pages "1-3,5"]
   watermark <in.pdf> -o <out.pdf> -text "CONFIDENTIAL" [-opacity 0.2] [-color #C80000]
-  pagenum <in.pdf> -o <out.pdf> [-format "Página {n} de {total}"] [-pos bottom-center]
+  pagenum <in.pdf> -o <out.pdf> [-format "Page {n} of {total}"] [-pos bottom-center]
           [-size 10] [-margin 10] [-start 1] [-pages "2-*"]
-  images2pdf -o <out.pdf> <img1> <carpeta> [...] [-size a4|letter|image] [-margin 10]
-  pdf2images <in.pdf> -o <carpeta> [-format png|jpg] [-dpi 150] [-pages "1-3"] [-name <base>]
+  images2pdf -o <out.pdf> <img1> <folder> [...] [-size a4|letter|image] [-margin 10]
+  pdf2images <in.pdf> -o <folder> [-format png|jpg] [-dpi 150] [-pages "1-3"] [-name <base>]
   text <in.pdf> [-o <out.txt>]
   info <in.pdf>
   metadata <in.pdf> -o <out.pdf> [-title …] [-author …] [-subject …] [-keywords …]
   encrypt <in.pdf> -o <out.pdf> -ownerPwd <pwd> [-userPwd <pwd>]
           [-perm print,copy,modify,annotate,fill,assemble]
-  decrypt <in.pdf> -o <out.pdf> -pwd <contraseña de propietario>
+  decrypt <in.pdf> -o <out.pdf> -pwd <owner password>
 ```
 
-Los errores se muestran con un mensaje claro y un código de salida distinto de 0: 2 si el comando está mal escrito y
-1 si falla la operación. Para ver el detalle técnico añade `-Dpdftool.debug=true` antes de `-jar`.
+Errors are reported with a clear message and a non-zero exit code: 2 if the command is mistyped and 1 if the
+operation fails. For technical details add `-Dpdftool.debug=true` before `-jar`.
 
-En Windows PowerShell (rutas con `\`):
+In Windows PowerShell (paths with `\`):
 
 ```powershell
 java -jar .\target\pdf-tool-1.0-SNAPSHOT.jar --help
 ```
 
-### Comandos y ejemplos
+### Commands and examples
 
-#### merge — unir varios PDFs o carpetas
-- Sintaxis: `merge -o <salida.pdf> <in1.pdf> <carpeta> [...]`
-  - Acepta archivos PDF individuales y carpetas. De cada carpeta se añaden sus `.pdf` en orden natural (`doc2`
-    antes que `doc10`); el propio archivo de salida nunca se incluye.
-  - Si falta algún archivo, se avisa sin generar nada.
-- Ejemplos:
+#### merge — merge several PDFs or folders
+- Syntax: `merge -o <output.pdf> <in1.pdf> <folder> [...]`
+  - Accepts individual PDF files and folders. From each folder its `.pdf` files are added in natural order (`doc2`
+    before `doc10`); the output file itself is never included.
+  - If a file is missing, you are told and nothing is created.
+- Examples:
   ```powershell
-  java -jar .\target\pdf-tool-1.0-SNAPSHOT.jar merge -o .\salida\unido.pdf .\docs\a.pdf .\docs\b.pdf
-  java -jar .\target\pdf-tool-1.0-SNAPSHOT.jar merge -o .\salida\final.pdf portada.pdf .\docs\contenido anexo.pdf
+  java -jar .\target\pdf-tool-1.0-SNAPSHOT.jar merge -o .\out\merged.pdf .\docs\a.pdf .\docs\b.pdf
+  java -jar .\target\pdf-tool-1.0-SNAPSHOT.jar merge -o .\out\final.pdf cover.pdf .\docs\content appendix.pdf
   ```
 
-#### split — dividir por rangos o en partes iguales
-- Sintaxis: `split <in.pdf> -ranges "1-3,7,10-*" -o <prefijo>` o `split <in.pdf> -every <N> -o <prefijo>`
-  - `*` indica hasta el final. Crea `<prefijo>_part001.pdf`, `<prefijo>_part002.pdf`… y los lista al terminar.
-- Ejemplos:
+#### split — split by ranges or into equal parts
+- Syntax: `split <in.pdf> -ranges "1-3,7,10-*" -o <prefix>` or `split <in.pdf> -every <N> -o <prefix>`
+  - `*` means up to the end. Creates `<prefix>_part001.pdf`, `<prefix>_part002.pdf`… and lists them when done.
+- Examples:
   ```powershell
-  java -jar .\target\pdf-tool-1.0-SNAPSHOT.jar split .\docs\origen.pdf -ranges "1-3,7,10-*" -o .\salida\corte
-  java -jar .\target\pdf-tool-1.0-SNAPSHOT.jar split .\docs\origen.pdf -every 1 -o .\salida\pagina
+  java -jar .\target\pdf-tool-1.0-SNAPSHOT.jar split .\docs\source.pdf -ranges "1-3,7,10-*" -o .\out\part
+  java -jar .\target\pdf-tool-1.0-SNAPSHOT.jar split .\docs\source.pdf -every 1 -o .\out\page
   ```
 
-#### extract / delete — extraer o eliminar páginas
-- `extract <in.pdf> -o <out.pdf> -pages "5,1-3"`: PDF nuevo solo con esas páginas, en el orden escrito.
-- `delete <in.pdf> -o <out.pdf> -pages "2,5-7"`: PDF nuevo sin esas páginas.
-- Los marcadores (índice) y los formularios rellenables del original no se conservan.
+#### extract / delete — extract or delete pages
+- `extract <in.pdf> -o <out.pdf> -pages "5,1-3"`: new PDF with only those pages, in the order written.
+- `delete <in.pdf> -o <out.pdf> -pages "2,5-7"`: new PDF without those pages.
+- Bookmarks (outline) and fillable forms of the original are not kept.
 
-#### compress — recomprimir imágenes del PDF
-- Sintaxis: `compress <in.pdf> -o <out.pdf> [-q 0.6] [--max-dpi 150] [--remove-metadata]`
-  - `-q`: calidad JPEG (0.1 a 1.0). Por defecto 0.7.
-  - `--max-dpi`: resolución máxima de las imágenes según el tamaño al que se muestran en la página.
-  - `--remove-metadata`: elimina los metadatos del documento.
-- Al terminar muestra el tamaño antes y después y cuántas imágenes se han recomprimido.
-- Ejemplo:
+#### compress — recompress the images in the PDF
+- Syntax: `compress <in.pdf> -o <out.pdf> [-q 0.6] [--max-dpi 150] [--remove-metadata]`
+  - `-q`: JPEG quality (0.1 to 1.0). Default 0.7.
+  - `--max-dpi`: maximum image resolution, based on the size at which each image is shown on the page.
+  - `--remove-metadata`: removes the document metadata.
+- When done it shows the size before and after and how many images were recompressed.
+- Example:
   ```powershell
-  java -jar .\target\pdf-tool-1.0-SNAPSHOT.jar compress .\docs\pesado.pdf -o .\salida\ligero.pdf -q 0.65 --max-dpi 150 --remove-metadata
+  java -jar .\target\pdf-tool-1.0-SNAPSHOT.jar compress .\docs\heavy.pdf -o .\out\light.pdf -q 0.65 --max-dpi 150 --remove-metadata
   ```
 
-#### rotate — rotar páginas
-- Sintaxis: `rotate <in.pdf> -o <out.pdf> -deg <90|180|270> [-pages "1-3,5"]`
-  - El giro es en sentido horario y debe ser múltiplo de 90 (también se admite `-90`).
-  - `-pages` es opcional; si no se indica, se aplica a todas las páginas.
-- Ejemplo:
+#### rotate — rotate pages
+- Syntax: `rotate <in.pdf> -o <out.pdf> -deg <90|180|270> [-pages "1-3,5"]`
+  - Rotation is clockwise and must be a multiple of 90 (`-90` is accepted too).
+  - `-pages` is optional; without it every page is rotated.
+- Example:
   ```powershell
-  java -jar .\target\pdf-tool-1.0-SNAPSHOT.jar rotate .\docs\origen.pdf -o .\salida\rotado_sel.pdf -deg 270 -pages "1-3,5"
+  java -jar .\target\pdf-tool-1.0-SNAPSHOT.jar rotate .\docs\source.pdf -o .\out\rotated_sel.pdf -deg 270 -pages "1-3,5"
   ```
 
-#### watermark — marca de agua de texto
-- Sintaxis: `watermark <in.pdf> -o <out.pdf> -text "TEXTO" [-opacity 0.2] [-color #C80000]`
-  - El texto se dibuja en diagonal (45°) y centrado en la zona visible de cada página, también en páginas giradas.
-  - Fuente Helvetica Bold de hasta 64 pt; si el texto es largo, se reduce para que quepa.
-  - Admite los caracteres del español (tildes, ñ, ¿¡, €). Si el texto tiene caracteres que la fuente no puede
-    mostrar (emojis, alfabetos no latinos…), se indican cuáles.
-- Ejemplo:
+#### watermark — text watermark
+- Syntax: `watermark <in.pdf> -o <out.pdf> -text "TEXT" [-opacity 0.2] [-color #C80000]`
+  - The text is drawn diagonally (45°) and centered on the visible area of each page, rotated pages included.
+  - Helvetica Bold font up to 64 pt; long text is shrunk to fit.
+  - Supports Western European characters (accents, ñ, ¿¡, €). If the text contains characters the font cannot show
+    (emojis, non-Latin scripts…), they are listed.
+- Example:
   ```powershell
-  java -jar .\target\pdf-tool-1.0-SNAPSHOT.jar watermark .\docs\origen.pdf -o .\salida\wm.pdf -text "CONFIDENCIAL" -opacity 0.25
+  java -jar .\target\pdf-tool-1.0-SNAPSHOT.jar watermark .\docs\source.pdf -o .\out\wm.pdf -text "CONFIDENTIAL" -opacity 0.25
   ```
 
-#### pagenum — numerar páginas
-- Sintaxis: `pagenum <in.pdf> -o <out.pdf> [-format "Página {n} de {total}"] [-pos bottom-center] [-size 10] [-margin 10] [-start 1] [-pages "2-*"]`
-  - `{n}` es el número de página y `{total}` el último número.
-  - `-pos`: `top-left`, `top-center`, `top-right`, `bottom-left`, `bottom-center` o `bottom-right`.
-  - `-margin` en milímetros. `-start` es el número de la primera página numerada.
-- Ejemplo (sin numerar la portada y empezando en 1):
+#### pagenum — number pages
+- Syntax: `pagenum <in.pdf> -o <out.pdf> [-format "Page {n} of {total}"] [-pos bottom-center] [-size 10] [-margin 10] [-start 1] [-pages "2-*"]`
+  - `{n}` is the page number and `{total}` the last number.
+  - `-pos`: `top-left`, `top-center`, `top-right`, `bottom-left`, `bottom-center` or `bottom-right`.
+  - `-margin` in millimeters. `-start` is the number of the first numbered page.
+- Example (skipping the cover and starting at 1):
   ```powershell
-  java -jar .\target\pdf-tool-1.0-SNAPSHOT.jar pagenum .\docs\informe.pdf -o .\salida\numerado.pdf -pages "2-*" -start 1
+  java -jar .\target\pdf-tool-1.0-SNAPSHOT.jar pagenum .\docs\report.pdf -o .\out\numbered.pdf -pages "2-*" -start 1
   ```
 
-#### images2pdf / pdf2images — convertir entre imágenes y PDF
-- `images2pdf -o <out.pdf> <img1> <carpeta> [...] [-size a4|letter|image] [-margin 10]`
-  - Una imagen por página, ajustada y centrada; un TIFF de varias páginas (escáner, fax) aporta todas. Los JPG se
-    incluyen sin recomprimir, y las fotos del móvil se giran según su orientación EXIF. Margen en milímetros.
-- `pdf2images <in.pdf> -o <carpeta> [-format png|jpg] [-dpi 150] [-pages "1-3"] [-name <base>]`
-  - Crea `<base>_001.png`, `<base>_002.png`… (el número es el de la página).
-- Ejemplos:
+#### images2pdf / pdf2images — convert between images and PDF
+- `images2pdf -o <out.pdf> <img1> <folder> [...] [-size a4|letter|image] [-margin 10]`
+  - One image per page, fitted and centered; a multi-page TIFF (scanner, fax) contributes all its pages. JPGs are
+    embedded without recompression, and phone photos are rotated according to their EXIF orientation. Margin in
+    millimeters.
+- `pdf2images <in.pdf> -o <folder> [-format png|jpg] [-dpi 150] [-pages "1-3"] [-name <base>]`
+  - Creates `<base>_001.png`, `<base>_002.png`… (the number is the page number).
+- Examples:
   ```powershell
-  java -jar .\target\pdf-tool-1.0-SNAPSHOT.jar images2pdf -o .\salida\fotos.pdf .\fotos
-  java -jar .\target\pdf-tool-1.0-SNAPSHOT.jar pdf2images .\docs\in.pdf -o .\salida\paginas -format jpg -dpi 200
+  java -jar .\target\pdf-tool-1.0-SNAPSHOT.jar images2pdf -o .\out\photos.pdf .\photos
+  java -jar .\target\pdf-tool-1.0-SNAPSHOT.jar pdf2images .\docs\in.pdf -o .\out\pages -format jpg -dpi 200
   ```
 
-#### text — extraer texto
-- Sintaxis: `text <in.pdf> [-o <out.txt>]`
-  - Sin `-o`, lo imprime por consola. Con `-o` lo guarda en UTF-8.
+#### text — extract text
+- Syntax: `text <in.pdf> [-o <out.txt>]`
+  - Without `-o`, prints it to the console. With `-o`, saves it as UTF-8.
 
-#### info / metadata — información y metadatos
-- `info <in.pdf>`: páginas, título, autor, asunto, palabras clave, productor y creador.
-- `metadata <in.pdf> -o <out.pdf> [-title …] [-author …] [-subject …] [-keywords …]`: cambia los campos indicados y
-  conserva los demás; un valor vacío (`-title ""`) borra el campo. Se actualizan tanto el diccionario de información
-  como los metadatos XMP, que es lo que muestran Acrobat y otros visores.
+#### info / metadata — information and metadata
+- `info <in.pdf>`: pages, title, author, subject, keywords, producer and creator.
+- `metadata <in.pdf> -o <out.pdf> [-title …] [-author …] [-subject …] [-keywords …]`: changes the given fields and
+  keeps the rest; an empty value (`-title ""`) clears the field. Both the information dictionary and the XMP
+  metadata (what Acrobat and other viewers show) are updated.
 
-#### encrypt / decrypt — cifrar y descifrar
+#### encrypt / decrypt — encrypt and decrypt
 - `encrypt <in.pdf> -o <out.pdf> -ownerPwd <pwd> [-userPwd <pwd>] [-perm print,copy]`
-  - Cifrado AES-256. `-ownerPwd` es obligatoria y debe ser distinta de `-userPwd`.
-  - `-userPwd` es opcional: si se indica, hará falta para abrir el documento.
-  - `-perm` concede permisos: `print`, `copy`, `modify`, `annotate`, `fill` (formularios) y `assemble` (insertar,
-    girar o eliminar páginas). Lo que no se indica queda bloqueado.
-- `decrypt <in.pdf> -o <out.pdf> -pwd <contraseña de propietario>`
-- Ejemplo:
+  - AES-256 encryption. `-ownerPwd` is required and must differ from `-userPwd`.
+  - `-userPwd` is optional: if given, it is needed to open the document.
+  - `-perm` grants permissions: `print`, `copy`, `modify`, `annotate`, `fill` (forms) and `assemble` (insert,
+    rotate or delete pages). Anything not listed is blocked.
+- `decrypt <in.pdf> -o <out.pdf> -pwd <owner password>`
+- Example:
   ```powershell
-  java -jar .\target\pdf-tool-1.0-SNAPSHOT.jar encrypt .\docs\in.pdf -o .\salida\enc.pdf -ownerPwd MiClaveAdmin -userPwd Lectura -perm print,copy
-  java -jar .\target\pdf-tool-1.0-SNAPSHOT.jar decrypt .\salida\enc.pdf -o .\salida\dec.pdf -pwd MiClaveAdmin
+  java -jar .\target\pdf-tool-1.0-SNAPSHOT.jar encrypt .\docs\in.pdf -o .\out\enc.pdf -ownerPwd MyAdminKey -userPwd ReadOnly -perm print,copy
+  java -jar .\target\pdf-tool-1.0-SNAPSHOT.jar decrypt .\out\enc.pdf -o .\out\dec.pdf -pwd MyAdminKey
   ```
 
 
-## Cambios de comportamiento respecto a la versión anterior
-- **Sin argumentos se abre la interfaz gráfica** (antes se mostraba la ayuda; `--help` sigue igual y, si no hay
-  entorno gráfico, se muestra la ayuda).
-- **PDFs con restricciones de seguridad** (los que tienen contraseña de propietario aunque se abran sin contraseña):
-  las operaciones que los modifican se niegan con un mensaje claro, en lugar de fallar (`rotate`, `watermark`,
-  `compress`) o de quitar las restricciones sin avisar (`merge`, `split`). Extraer texto y exportar imágenes respetan
-  el permiso de copia. Para modificarlos, primero quita la protección con la contraseña de propietario.
-- **decrypt** exige la contraseña de propietario. La de apertura sola no basta, igual que en Acrobat.
-- **encrypt** usa AES-256 (antes RC4 de 128 bits) y concede solo los permisos indicados; antes anotar, rellenar
-  formularios y ensamblar quedaban permitidos aunque no se pidieran.
-- **compress `--max-dpi`** se calcula con el tamaño real al que se muestra cada imagen (antes reducía todas las
-  imágenes en la proporción `dpi/300`). Una imagen solo se sustituye si el resultado es al menos un 10 % más pequeño.
-- **merge** ordena el contenido de las carpetas en orden natural y falla si algún archivo no existe (antes se omitía
-  y el recuento era incorrecto).
-- **split** conserva el tamaño de página, el giro y las fuentes que las páginas heredan del documento (antes se
-  podían perder) y lista los archivos creados.
+## Behavior changes from the previous version
+- **With no arguments the graphical interface opens** (previously the help was shown; `--help` is unchanged and,
+  without a graphical environment, the help is shown).
+- **PDFs with security restrictions** (those with an owner password even if they open without one): operations
+  that modify them are refused with a clear message, instead of failing (`rotate`, `watermark`, `compress`) or
+  silently removing the restrictions (`merge`, `split`). Extracting text and exporting images respect the copy
+  permission. To modify them, first remove the protection with the owner password.
+- **decrypt** requires the owner password. The open password alone is not enough, just like in Acrobat.
+- **encrypt** uses AES-256 (previously 128-bit RC4) and grants only the listed permissions; previously annotating,
+  filling forms and assembling were allowed even if not requested.
+- **compress `--max-dpi`** is computed from the real size at which each image is shown (previously every image was
+  scaled by `dpi/300`). An image is only replaced if the result is at least 10% smaller.
+- **merge** sorts folder contents in natural order and fails if a file does not exist (previously it was skipped
+  and the count was wrong).
+- **split** keeps the page size, rotation and fonts that pages inherit from the document (previously they could be
+  lost) and lists the files created.
 
 
-## Notas de diseño y comportamiento
-- Escritura segura: cada salida se escribe en un temporal de la misma carpeta y solo al final sustituye al destino.
-  Si algo falla, el destino queda intacto. Por eso la salida puede ser el mismo archivo de entrada.
-- Compresión: cada imagen distinta se recomprime una sola vez, aunque aparezca en muchas páginas, y se procesan
-  también las imágenes dentro de formularios y anotaciones. No se tocan las imágenes con transparencia ni las de
-  1 bit (escaneos en blanco y negro), y las imágenes en gris siguen en gris. Las imágenes CMYK se convierten a RGB.
-  Para documentos escaneados suele funcionar bien en el rango 0.5–0.8.
-- Marca de agua y numeración: se dibujan en las coordenadas «visuales» de cada página, así que salen bien colocadas
-  aunque la página esté girada (`/Rotate`) o su zona visible no empiece en el origen.
-- Metadatos: `--remove-metadata` limpia la información del documento y los metadatos XMP.
+## Design notes
+- Safe writes: each output is written to a temporary file in the same folder and only replaces the target at the
+  end. If something fails, the target is left untouched. That is why the output may be the input file itself.
+- Compression: each distinct image is recompressed only once, even if it appears on many pages, and images inside
+  forms and annotations are processed too. Images with transparency and 1-bit images (black-and-white scans) are
+  left alone, and grayscale images stay grayscale. CMYK images are converted to RGB. For scanned documents the
+  0.5–0.8 range usually works well.
+- Watermark and page numbers: drawn in the "visual" coordinates of each page, so they are placed correctly even if
+  the page is rotated (`/Rotate`) or its visible area does not start at the origin.
+- Metadata: `--remove-metadata` clears the document information and the XMP metadata.
 
 
-## Solución de problemas
-- La interfaz no se abre con doble clic: comprueba que tienes Java 21 (`java -version`) y que los `.jar` se abren con
-  Java, o ejecuta `java -jar pdf-tool-1.0-SNAPSHOT.jar` desde una consola para ver el mensaje. Si el JAR se generó en
-  otro sistema operativo, vuelve a generarlo en el tuyo con `mvn clean package`.
-- «Comando no reconocido»: revisa que estás usando alguno de los listados en la ayuda.
-- «Debe indicar -o <out.pdf>» u otros mensajes de uso: el comando requiere esas opciones. Mira los ejemplos.
-- Problemas de rutas en Windows: usa `\` o comillas si hay espacios, por ejemplo `"C:\\Mi Carpeta\\in.pdf"`.
-- «No se puede escribir en …»: el archivo de salida está abierto en otro programa (por ejemplo, el visor de PDF) o
-  la carpeta es de solo lectura.
-- PDFs protegidos: para operar sobre un PDF cifrado usa antes `decrypt` (o «Quitar contraseña») con la contraseña
-  de propietario.
-- Resultados de compresión pobres: prueba el preajuste «Máxima compresión» o baja `-q`/`--max-dpi`. Los PDF sin
-  imágenes, o con imágenes ya muy comprimidas, apenas se reducen.
-- «El PDF no contiene texto seleccionable»: es un documento escaneado. Sus páginas son imágenes y haría falta un
-  programa de OCR.
+## Troubleshooting
+- The interface does not open on double-click: check that you have Java 21 (`java -version`) and that `.jar` files
+  open with Java, or run `java -jar pdf-tool-1.0-SNAPSHOT.jar` from a console to see the message. If the JAR was
+  built on another operating system, rebuild it on yours with `mvn clean package`.
+- "Unknown command": make sure you are using one of the commands listed in the help.
+- "Missing -o <out.pdf>" or other usage messages: the command needs those options. See the examples.
+- Path problems on Windows: use `\`, and quotes if there are spaces, e.g. `"C:\\My Folder\\in.pdf"`.
+- "Cannot write to …": the output file is open in another program (e.g. the PDF viewer) or the folder is
+  read-only.
+- Protected PDFs: to work on an encrypted PDF, first use `decrypt` (or "Remove password") with the owner password.
+- Poor compression results: try the "Smallest size" preset or lower `-q`/`--max-dpi`. PDFs without images, or with
+  already highly compressed images, barely shrink.
+- "This PDF has no selectable text": it is a scanned document. Its pages are images and an OCR program would be
+  needed.
 
 
-## Desarrollo
-- Java 21, Apache PDFBox 3, JavaFX 21 (FXML) y JUnit 5.
-- Estructura en `src/main/java/com/alejandro/pdftool/`:
-  - `App` (CLI), `PdfOps` (fachada con todas las operaciones), `CliUtil` (argumentos y rangos de páginas) y clases
-    auxiliares del núcleo (`SafeOutput`, `Pdfs`, `ImageRecompressor`, `PageStamper`, `MetadataSupport`,
-    `ImageConversion`…).
-  - `gui/`: `GuiLauncher`, `PdfToolApp`, `MainController`, `components/` y `views/` (un controlador por pantalla).
-- Tests: `mvn test`. `GuiSmokeTest` carga todas las pantallas; en un Linux sin entorno gráfico se omite, o se puede
-  ejecutar con `xvfb-run mvn test`.
+## Development
+- Java 21, Apache PDFBox 3, JavaFX 21 (FXML) and JUnit 5.
+- Layout of `src/main/java/com/alejandro/pdftool/`:
+  - `App` (CLI), `PdfOps` (facade with every operation), `CliUtil` (arguments and page ranges) and core helper
+    classes (`SafeOutput`, `Pdfs`, `ImageRecompressor`, `PageStamper`, `MetadataSupport`, `ImageConversion`…).
+  - `gui/`: `GuiLauncher`, `PdfToolApp`, `MainController`, `components/` and `views/` (one controller per screen).
+- Tests: `mvn test`. `GuiSmokeTest` loads every screen; on Linux without a graphical environment it is skipped, or
+  run it with `xvfb-run mvn test`.
 
 
-## Licencia
-Este proyecto se distribuye tal cual, sin garantías. Ajusta la licencia según tus necesidades.
+## License
+This project is provided as is, without warranty. Adjust the license to your needs.

@@ -8,16 +8,16 @@
             xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.alejandro.pdftool.gui.views.MergeController">
     <VBox spacing="16" styleClass="page">
         <VBox spacing="4">
-            <Label styleClass="view-title" text="Unir PDF"/>
+            <Label styleClass="view-title" text="Merge PDFs"/>
             <Label styleClass="view-description" wrapText="true"
-                   text="Combina varios PDF en uno solo. Puedes añadir carpetas enteras: se incluyen sus PDF ordenados por nombre (doc2 antes que doc10)."/>
+                   text="Combine several PDFs into one. You can add whole folders: their PDFs are included sorted by name (doc2 before doc10)."/>
         </VBox>
         <VBox spacing="10" styleClass="section">
-            <Label styleClass="section-label" text="1. Archivos que quieres unir"/>
+            <Label styleClass="section-label" text="1. Files to merge"/>
             <fx:include fx:id="files" source="file-list.fxml"/>
         </VBox>
         <VBox spacing="10" styleClass="section">
-            <Label styleClass="section-label" text="2. Dónde guardar el resultado"/>
+            <Label styleClass="section-label" text="2. Where to save the result"/>
             <fx:include fx:id="output" source="file-field.fxml"/>
         </VBox>
         <fx:include fx:id="runBar" source="run-bar.fxml"/>

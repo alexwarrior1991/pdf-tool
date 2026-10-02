@@ -42,11 +42,11 @@ public class WatermarkController extends OperationView {
 
     @FXML
     private void initialize() {
-        inputController.configure(FileFieldController.Mode.OPEN_PDF, "PDF al que quieres añadir la marca");
-        outputController.configure(FileFieldController.Mode.SAVE_PDF, "Ruta del PDF que se va a crear");
-        runBarController.setText("Añadir marca de agua");
+        inputController.configure(FileFieldController.Mode.OPEN_PDF, "PDF to watermark");
+        outputController.configure(FileFieldController.Mode.SAVE_PDF, "Path of the PDF to create");
+        runBarController.setText("Add watermark");
         runBarController.setOnRun(this::run);
-        suggestOutputBesides(inputController, outputController, "marca_agua", "pdf");
+        suggestOutputBesides(inputController, outputController, "watermarked", "pdf");
 
         java.awt.Color defaultColor = PdfOps.DEFAULT_WATERMARK_COLOR;
         colorPicker.setValue(Color.rgb(defaultColor.getRed(), defaultColor.getGreen(), defaultColor.getBlue()));
@@ -60,7 +60,7 @@ public class WatermarkController extends OperationView {
     /** Vista previa aproximada: mismo ángulo, color y opacidad; el tamaño se ajusta como en el PDF. */
     private void updatePreview() {
         String text = textField.getText().isBlank() ? " " : textField.getText().strip();
-        opacityLabel.setText(Math.round(opacitySlider.getValue()) + " %");
+        opacityLabel.setText(Math.round(opacitySlider.getValue()) + "%");
         previewText.setText(text);
         previewText.setFill(colorPicker.getValue());
         previewText.setOpacity(Math.max(0.05, opacitySlider.getValue() / 100.0));
@@ -74,25 +74,25 @@ public class WatermarkController extends OperationView {
     }
 
     private void run() {
-        Path input = inputFile(inputController, "Elige el PDF al que añadir la marca de agua.");
+        Path input = inputFile(inputController, "Choose the PDF to add the watermark to.");
         if (input == null) return;
         String text = textField.getText().strip();
         if (text.isEmpty()) {
-            invalid("Escribe el texto de la marca de agua.");
+            invalid("Enter the watermark text.");
             return;
         }
-        Path output = outputFile(outputController, "Indica dónde guardar el PDF resultante.");
+        Path output = outputFile(outputController, "Choose where to save the resulting PDF.");
         if (output == null) return;
         float opacity = (float) (Math.round(opacitySlider.getValue()) / 100.0);
         Color c = colorPicker.getValue();
         java.awt.Color color = new java.awt.Color((float) c.getRed(), (float) c.getGreen(), (float) c.getBlue());
-        runBarController.start("Añadiendo la marca de agua…",
+        runBarController.start("Adding the watermark…",
                 progress -> {
                     PdfOps.watermarkText(input, output, text, opacity, color, progress);
                     return output;
                 },
                 result -> {
-                    runBarController.success("Marca de agua añadida: «" + fileName(output) + "».", output, null);
+                    runBarController.success("Watermark added: \"" + fileName(output) + "\".", output, null);
                     if (sameFile(input, output)) inputController.refresh();
                 });
     }

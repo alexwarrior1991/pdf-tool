@@ -24,31 +24,31 @@ public class DecryptController extends OperationView {
 
     @FXML
     private void initialize() {
-        inputController.configure(FileFieldController.Mode.OPEN_PDF, "PDF protegido");
-        outputController.configure(FileFieldController.Mode.SAVE_PDF, "Ruta del PDF sin protección");
-        runBarController.setText("Quitar protección");
+        inputController.configure(FileFieldController.Mode.OPEN_PDF, "Protected PDF");
+        outputController.configure(FileFieldController.Mode.SAVE_PDF, "Path of the unprotected PDF");
+        runBarController.setText("Remove protection");
         runBarController.setOnRun(this::run);
-        suggestOutputBesides(inputController, outputController, "desprotegido", "pdf");
+        suggestOutputBesides(inputController, outputController, "unprotected", "pdf");
     }
 
     private void run() {
-        Path input = inputFile(inputController, "Elige el PDF protegido.");
+        Path input = inputFile(inputController, "Choose the protected PDF.");
         if (input == null) return;
         String password = passwordField.getText();
         if (password.isEmpty()) {
-            invalid("Escribe la contraseña de propietario del PDF.");
+            invalid("Enter the PDF's owner password.");
             return;
         }
-        Path output = outputFile(outputController, "Indica dónde guardar el PDF sin protección.");
+        Path output = outputFile(outputController, "Choose where to save the unprotected PDF.");
         if (output == null) return;
-        runBarController.start("Quitando la protección…",
+        runBarController.start("Removing protection…",
                 progress -> {
                     PdfOps.decrypt(input, output, password);
                     return output;
                 },
                 result -> {
                     passwordField.clear();
-                    runBarController.success("Protección eliminada: «" + fileName(output) + "».", output, null);
+                    runBarController.success("Protection removed: \"" + fileName(output) + "\".", output, null);
                     if (sameFile(input, output)) inputController.refresh();
                 });
     }

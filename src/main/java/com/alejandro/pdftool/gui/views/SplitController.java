@@ -46,9 +46,9 @@ public class SplitController extends OperationView {
 
     @FXML
     private void initialize() {
-        inputController.configure(FileFieldController.Mode.OPEN_PDF, "PDF que quieres dividir");
-        folderController.configure(FileFieldController.Mode.DIRECTORY, "Carpeta donde se guardarán las partes");
-        runBarController.setText("Dividir PDF");
+        inputController.configure(FileFieldController.Mode.OPEN_PDF, "PDF to split");
+        folderController.configure(FileFieldController.Mode.DIRECTORY, "Folder where the parts will be saved");
+        runBarController.setText("Split PDF");
         runBarController.setOnRun(this::run);
         rangesField.disableProperty().bind(byRanges.selectedProperty().not());
         everySpinner.disableProperty().bind(byCount.selectedProperty().not());
@@ -67,39 +67,39 @@ public class SplitController extends OperationView {
     }
 
     private void updateExample() {
-        String base = baseNameField.getText().isBlank() ? "documento" : baseNameField.getText().strip();
-        exampleLabel.setText("Se crearán archivos como " + base + "_part001.pdf, " + base + "_part002.pdf…");
+        String base = baseNameField.getText().isBlank() ? "document" : baseNameField.getText().strip();
+        exampleLabel.setText("Creates files like " + base + "_part001.pdf, " + base + "_part002.pdf…");
     }
 
     private void run() {
-        Path input = inputFile(inputController, "Elige el PDF que quieres dividir.");
+        Path input = inputFile(inputController, "Choose the PDF to split.");
         if (input == null) return;
         Path folder = folderController.getPath();
         if (folder == null) {
-            invalid("Elige la carpeta donde guardar las partes.");
+            invalid("Choose the folder to save the parts in.");
             return;
         }
         String base = baseNameField.getText().strip();
         if (base.isEmpty() || base.matches(".*[\\\\/:*?\"<>|].*")) {
-            invalid("Escribe un nombre base válido para los archivos (sin \\ / : * ? \" < > |).");
+            invalid("Enter a valid base name for the files (without \\ / : * ? \" < > |).");
             return;
         }
         Path prefix = folder.resolve(base);
         int pages = inputController.pageCountProperty().get();
         if (byRanges.isSelected()) {
-            List<CliUtil.PageRange> ranges = ranges(rangesField, true, "Escribe los rangos de páginas, p. ej. 1-3, 4-10, 11-*.");
+            List<CliUtil.PageRange> ranges = ranges(rangesField, true, "Enter the page ranges, e.g. 1-3, 4-10, 11-*.");
             if (ranges == null) return;
             int count = (int) ranges.stream().filter(r -> pages <= 0 || r.start() <= pages).count();
             if (!runBarController.confirmOverwrite(plannedParts(prefix, base, folder, pages > 0 ? count : -1))) return;
-            runBarController.start("Dividiendo…",
+            runBarController.start("Splitting…",
                     progress -> PdfOps.splitByRanges(input, prefix, ranges, progress),
                     parts -> done(parts, folder));
         } else {
-            Integer every = spinnerValue(everySpinner, "«Páginas por parte»");
+            Integer every = spinnerValue(everySpinner, "\"Pages per part\"");
             if (every == null) return;
             int count = pages > 0 ? (pages + every - 1) / every : -1;
             if (!runBarController.confirmOverwrite(plannedParts(prefix, base, folder, count))) return;
-            runBarController.start("Dividiendo…",
+            runBarController.start("Splitting…",
                     progress -> PdfOps.splitEvery(input, prefix, every, progress),
                     parts -> done(parts, folder));
         }
@@ -121,7 +121,7 @@ public class SplitController extends OperationView {
     }
 
     private void done(List<Path> parts, Path folder) {
-        runBarController.success("Se han creado " + parts.size() + (parts.size() == 1 ? " archivo" : " archivos")
-                + " en «" + folder + "».", parts.size() == 1 ? parts.get(0) : null, folder);
+        runBarController.success("Created " + parts.size() + (parts.size() == 1 ? " file" : " files")
+                + " in \"" + folder + "\".", parts.size() == 1 ? parts.get(0) : null, folder);
     }
 }

@@ -8,16 +8,16 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
-<!-- Miniaturas de las páginas del PDF elegido. -->
+<!-- Thumbnails of the selected PDF’s pages. -->
 <VBox fx:id="root" spacing="6" styleClass="thumbnails" stylesheets="@app.css"
       xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.alejandro.pdftool.gui.components.ThumbnailsController">
     <HBox alignment="CENTER_LEFT" spacing="8">
-        <Label styleClass="section-label" text="Páginas"/>
+        <Label styleClass="section-label" text="Pages"/>
         <Label fx:id="statusLabel" styleClass="field-hint"/>
         <Region HBox.hgrow="ALWAYS"/>
-        <Hyperlink fx:id="selectAllLink" onAction="#selectAll" text="Seleccionar todas"/>
-        <Hyperlink fx:id="selectNoneLink" onAction="#selectNone" text="Ninguna"/>
+        <Hyperlink fx:id="selectAllLink" onAction="#selectAll" text="Select all"/>
+        <Hyperlink fx:id="selectNoneLink" onAction="#selectNone" text="None"/>
     </HBox>
     <ScrollPane fitToWidth="true" minHeight="150" prefHeight="300" styleClass="thumbnail-scroll" VBox.vgrow="ALWAYS">
         <FlowPane fx:id="pages" hgap="10" styleClass="thumbnail-grid" vgap="10"/>

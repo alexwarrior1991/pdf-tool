@@ -99,7 +99,7 @@ public class RunBarController {
      */
     public <T> void start(String busyText, Work<T> work, Consumer<T> onSuccess) {
         if (context.isBusy()) {
-            error("Espera a que termine la operación en curso.");
+            error("Wait for the current operation to finish.");
             return;
         }
         Task<T> task = new Task<>() {
@@ -168,10 +168,10 @@ public class RunBarController {
             return true;
         }
         String names = existing.stream().limit(5).map(p -> "• " + p.getFileName()).collect(Collectors.joining("\n"));
-        String more = existing.size() > 5 ? "\n… y " + (existing.size() - 5) + " más" : "";
-        return Dialogs.confirm(context.stage(), "¿Reemplazar archivos?",
-                (existing.size() == 1 ? "Este archivo ya existe y se reemplazará:\n" : "Estos archivos ya existen y se reemplazarán:\n")
-                        + names + more, "Reemplazar");
+        String more = existing.size() > 5 ? "\n… and " + (existing.size() - 5) + " more" : "";
+        return Dialogs.confirm(context.stage(), "Replace files?",
+                (existing.size() == 1 ? "This file already exists and will be replaced:\n" : "These files already exist and will be replaced:\n")
+                        + names + more, "Replace");
     }
 
     public boolean confirmOverwrite(Path... targets) {

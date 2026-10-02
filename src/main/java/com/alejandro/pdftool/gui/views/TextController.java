@@ -39,17 +39,17 @@ public class TextController extends OperationView {
 
     @FXML
     private void initialize() {
-        inputController.configure(FileFieldController.Mode.OPEN_PDF, "PDF del que quieres sacar el texto");
-        runBarController.setText("Extraer texto");
+        inputController.configure(FileFieldController.Mode.OPEN_PDF, "PDF to extract text from");
+        runBarController.setText("Extract text");
         runBarController.setOnRun(this::run);
         copyButton.disableProperty().bind(textArea.textProperty().isEmpty());
         saveButton.disableProperty().bind(textArea.textProperty().isEmpty().or(context.busyProperty()));
     }
 
     private void run() {
-        Path input = inputFile(inputController, "Elige el PDF del que quieres sacar el texto.");
+        Path input = inputFile(inputController, "Choose the PDF to extract text from.");
         if (input == null) return;
-        runBarController.start("Leyendo el texto…",
+        runBarController.start("Reading the text…",
                 progress -> PdfOps.readText(input, progress),
                 text -> show(input, text));
     }
@@ -60,12 +60,13 @@ public class TextController extends OperationView {
         textArea.positionCaret(0);
         String trimmed = text.strip();
         long words = trimmed.isEmpty() ? 0 : trimmed.split("\\s+").length;
-        statsLabel.setText(String.format(Formats.SPANISH, "%,d palabras · %,d caracteres", words, text.length()));
+        statsLabel.setText(String.format(Formats.LOCALE, "%,d " + (words == 1 ? "word" : "words") + " · %,d "
+                + (text.length() == 1 ? "character" : "characters"), words, text.length()));
         if (trimmed.isEmpty()) {
-            runBarController.warning("El PDF no contiene texto seleccionable. Si es un documento escaneado, "
-                    + "sus páginas son imágenes y haría falta un programa de reconocimiento de texto (OCR).");
+            runBarController.warning("The PDF has no selectable text. If it's a scanned document, "
+                    + "its pages are images and you'd need a text recognition (OCR) program.");
         } else {
-            runBarController.success("Texto extraído de «" + fileName(input) + "».", null, null);
+            runBarController.success("Text extracted from \"" + fileName(input) + "\".", null, null);
         }
     }
 
@@ -74,17 +75,17 @@ public class TextController extends OperationView {
         ClipboardContent content = new ClipboardContent();
         content.putString(textArea.getText());
         Clipboard.getSystemClipboard().setContent(content);
-        runBarController.success("Texto copiado al portapapeles.", null, null);
+        runBarController.success("Text copied to the clipboard.", null, null);
     }
 
     @FXML
     private void save() {
         FileChooser chooser = new FileChooser();
-        chooser.setTitle("Guardar texto");
-        chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Texto (*.txt)", "*.txt"));
+        chooser.setTitle("Save text");
+        chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Text (*.txt)", "*.txt"));
         chooser.setInitialDirectory(context.initialDirectory());
         if (source != null) {
-            Path suggestion = OutputNames.besides(source, "texto", "txt");
+            Path suggestion = OutputNames.besides(source, "text", "txt");
             if (Files.isDirectory(suggestion.getParent())) { // la carpeta puede haber desaparecido (USB retirado…)
                 chooser.setInitialDirectory(suggestion.getParent().toFile());
             }
@@ -98,11 +99,11 @@ public class TextController extends OperationView {
         if (!target.equals(chosen) && !runBarController.confirmOverwrite(target)) return;
         String text = textArea.getText();
         context.rememberDirectory(target);
-        runBarController.start("Guardando…",
+        runBarController.start("Saving…",
                 progress -> {
                     PdfOps.saveText(text, target);
                     return target;
                 },
-                saved -> runBarController.success("Texto guardado en «" + fileName(saved) + "» (UTF-8).", saved, null));
+                saved -> runBarController.success("Text saved to \"" + fileName(saved) + "\" (UTF-8).", saved, null));
     }
 }

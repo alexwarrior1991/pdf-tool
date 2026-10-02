@@ -25,23 +25,23 @@ final class Pdfs {
     /** Abre el PDF leyendo del disco bajo demanda (no lo carga entero en memoria). */
     static PDDocument open(Path input, String password) throws IOException {
         if (!Files.exists(input)) {
-            throw new PdfToolException("No existe el archivo «" + input + "».");
+            throw new PdfToolException("File \"" + input + "\" does not exist.");
         }
         if (Files.isDirectory(input)) {
-            throw new PdfToolException("«" + input + "» es una carpeta, no un PDF.");
+            throw new PdfToolException("\"" + input + "\" is a folder, not a PDF.");
         }
         try {
             return password == null ? Loader.loadPDF(input.toFile()) : Loader.loadPDF(input.toFile(), password);
         } catch (InvalidPasswordException e) {
             throw new PdfToolException(password == null || password.isEmpty()
-                    ? "«" + name(input) + "» está protegido con contraseña de apertura. "
-                    + "Quita antes la protección con «Quitar contraseña»."
-                    : "La contraseña no es correcta para «" + name(input) + "».", e);
+                    ? "\"" + name(input) + "\" is protected with an open password. "
+                    + "Remove the protection first with \"Remove password\"."
+                    : "Incorrect password for \"" + name(input) + "\".", e);
         } catch (FileSystemException e) {
             throw e;
         } catch (IOException e) {
-            throw new PdfToolException("No se ha podido leer «" + name(input)
-                    + "»: no parece un PDF válido o está dañado (" + e.getMessage() + ").", e);
+            throw new PdfToolException("Could not read \"" + name(input)
+                    + "\": it does not look like a valid PDF or it is damaged (" + e.getMessage() + ").", e);
         }
     }
 
@@ -58,14 +58,14 @@ final class Pdfs {
             doc.setAllSecurityToBeRemoved(true);
             return;
         }
-        throw new PdfToolException("«" + name(input) + "» tiene restricciones de seguridad puestas por su autor. "
-                + "Para modificarlo, quita antes la protección con «Quitar contraseña» usando la contraseña de propietario.");
+        throw new PdfToolException("\"" + name(input) + "\" has security restrictions set by its author. "
+                + "To modify it, first remove the protection with \"Remove password\" using the owner password.");
     }
 
     /** Para extraer texto o imágenes: respeta el permiso de copia del autor. */
     static void requireCopyPermission(PDDocument doc, Path input) throws PdfToolException {
         if (doc.isEncrypted() && !doc.getCurrentAccessPermission().canExtractContent()) {
-            throw new PdfToolException("El autor de «" + name(input) + "» no permite copiar su contenido.");
+            throw new PdfToolException("The author of \"" + name(input) + "\" does not allow copying its content.");
         }
     }
 

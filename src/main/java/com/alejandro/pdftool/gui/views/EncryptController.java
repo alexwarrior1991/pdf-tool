@@ -41,11 +41,11 @@ public class EncryptController extends OperationView {
 
     @FXML
     private void initialize() {
-        inputController.configure(FileFieldController.Mode.OPEN_PDF, "PDF que quieres proteger");
-        outputController.configure(FileFieldController.Mode.SAVE_PDF, "Ruta del PDF protegido");
-        runBarController.setText("Proteger PDF");
+        inputController.configure(FileFieldController.Mode.OPEN_PDF, "PDF to protect");
+        outputController.configure(FileFieldController.Mode.SAVE_PDF, "Path of the protected PDF");
+        runBarController.setText("Protect PDF");
         runBarController.setOnRun(this::run);
-        suggestOutputBesides(inputController, outputController, "protegido", "pdf");
+        suggestOutputBesides(inputController, outputController, "protected", "pdf");
         for (PdfPermission permission : PdfPermission.values()) {
             CheckBox check = new CheckBox(permission.label());
             check.setSelected(permission == PdfPermission.PRINT);
@@ -56,41 +56,41 @@ public class EncryptController extends OperationView {
     }
 
     private void run() {
-        Path input = inputFile(inputController, "Elige el PDF que quieres proteger.");
+        Path input = inputFile(inputController, "Choose the PDF to protect.");
         if (input == null) return;
         String user = userPassword.getText();
         String owner = ownerPassword.getText();
         if (!user.equals(userPasswordRepeat.getText())) {
-            invalid("Las dos contraseñas de apertura no coinciden.");
+            invalid("The two open passwords don't match.");
             return;
         }
         if (owner.isEmpty()) {
-            invalid("Escribe la contraseña de propietario: es la que permite cambiar los permisos o quitar la protección.");
+            invalid("Enter the owner password: it lets you change the permissions or remove the protection.");
             return;
         }
         if (!owner.equals(ownerPasswordRepeat.getText())) {
-            invalid("Las dos contraseñas de propietario no coinciden.");
+            invalid("The two owner passwords don't match.");
             return;
         }
         if (owner.equals(user)) {
-            invalid("La contraseña de propietario debe ser distinta de la de apertura; si no, quien abra el PDF "
-                    + "tendría todos los permisos.");
+            invalid("The owner password must be different from the open password; otherwise anyone who opens the PDF "
+                    + "would have full permissions.");
             return;
         }
-        Path output = outputFile(outputController, "Indica dónde guardar el PDF protegido.");
+        Path output = outputFile(outputController, "Choose where to save the protected PDF.");
         if (output == null) return;
         Set<PdfPermission> permissions = EnumSet.noneOf(PdfPermission.class);
         permissionChecks.forEach((permission, check) -> {
             if (check.isSelected()) permissions.add(permission);
         });
-        runBarController.start("Protegiendo…",
+        runBarController.start("Protecting…",
                 progress -> {
                     PdfOps.encrypt(input, output, owner, user, permissions);
                     return output;
                 },
                 result -> {
-                    runBarController.success("PDF protegido con AES-256: «" + fileName(output) + "». Guarda bien la "
-                            + "contraseña de propietario: sin ella no se puede quitar la protección.", output, null);
+                    runBarController.success("PDF protected with AES-256: \"" + fileName(output) + "\". Keep the owner "
+                            + "password safe: without it, the protection can't be removed.", output, null);
                     userPassword.clear();
                     userPasswordRepeat.clear();
                     ownerPassword.clear();

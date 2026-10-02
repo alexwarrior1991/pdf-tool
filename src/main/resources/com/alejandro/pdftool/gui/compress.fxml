@@ -16,30 +16,30 @@
             xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.alejandro.pdftool.gui.views.CompressController">
     <VBox spacing="16" styleClass="page">
         <VBox spacing="4">
-            <Label styleClass="view-title" text="Comprimir"/>
+            <Label styleClass="view-title" text="Compress"/>
             <Label styleClass="view-description" wrapText="true"
-                   text="Reduce el tamaño del PDF recomprimiendo sus imágenes. El texto y los gráficos vectoriales no pierden calidad, y una imagen solo se sustituye si el resultado es claramente más pequeño."/>
+                   text="Reduce the PDF’s size by recompressing its images. Text and vector graphics keep their quality, and an image is only replaced if the result is clearly smaller."/>
         </VBox>
         <VBox spacing="10" styleClass="section">
             <Label styleClass="section-label" text="1. PDF"/>
             <fx:include fx:id="input" source="file-field.fxml"/>
         </VBox>
         <VBox spacing="10" styleClass="section">
-            <Label styleClass="section-label" text="2. Nivel de compresión"/>
+            <Label styleClass="section-label" text="2. Compression level"/>
             <GridPane hgap="12" vgap="10">
                 <columnConstraints>
                     <ColumnConstraints minWidth="170"/>
                     <ColumnConstraints hgrow="ALWAYS"/>
                 </columnConstraints>
-                <Label styleClass="field-label" text="Preajuste:" GridPane.rowIndex="0"/>
+                <Label styleClass="field-label" text="Preset:" GridPane.rowIndex="0"/>
                 <ComboBox fx:id="presetBox" prefWidth="260" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
-                <Label styleClass="field-label" text="Calidad de las imágenes:" GridPane.rowIndex="1"/>
+                <Label styleClass="field-label" text="Image quality:" GridPane.rowIndex="1"/>
                 <HBox alignment="CENTER_LEFT" spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="1">
                     <Slider fx:id="qualitySlider" blockIncrement="5" majorTickUnit="10" max="100" min="10"
                             minorTickCount="1" prefWidth="320" showTickMarks="true" value="70"/>
-                    <Label fx:id="qualityLabel" minWidth="50" text="70 %"/>
+                    <Label fx:id="qualityLabel" minWidth="50" text="70%"/>
                 </HBox>
-                <CheckBox fx:id="limitDpiCheck" mnemonicParsing="false" text="Reducir la resolución a:"
+                <CheckBox fx:id="limitDpiCheck" mnemonicParsing="false" text="Reduce resolution to:"
                           GridPane.rowIndex="2"/>
                 <HBox alignment="CENTER_LEFT" spacing="8" GridPane.columnIndex="1" GridPane.rowIndex="2">
                     <Spinner fx:id="dpiSpinner" editable="true" prefWidth="100">
@@ -48,15 +48,15 @@
                                                                             max="600" min="36"/>
                         </valueFactory>
                     </Spinner>
-                    <Label styleClass="field-hint" text="ppp como máximo (150 para pantalla, 300 para imprimir)"/>
+                    <Label styleClass="field-hint" text="dpi max (150 for screen, 300 for print)"/>
                 </HBox>
                 <CheckBox fx:id="removeMetadataCheck" mnemonicParsing="false"
-                          text="Eliminar metadatos (título, autor, programa…)" GridPane.columnIndex="0"
+                          text="Remove metadata (title, author, software…)" GridPane.columnIndex="0"
                           GridPane.columnSpan="2" GridPane.rowIndex="3"/>
             </GridPane>
         </VBox>
         <VBox spacing="10" styleClass="section">
-            <Label styleClass="section-label" text="3. Dónde guardar el resultado"/>
+            <Label styleClass="section-label" text="3. Where to save the result"/>
             <fx:include fx:id="output" source="file-field.fxml"/>
         </VBox>
         <fx:include fx:id="runBar" source="run-bar.fxml"/>

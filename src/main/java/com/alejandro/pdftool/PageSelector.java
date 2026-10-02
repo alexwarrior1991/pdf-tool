@@ -33,7 +33,7 @@ final class PageSelector extends Splitter {
      */
     static PDDocument select(PDDocument source, List<Integer> pages) throws IOException {
         if (pages.isEmpty()) {
-            throw new IllegalArgumentException("No hay páginas que conservar.");
+            throw new IllegalArgumentException("There are no pages to keep.");
         }
         List<PDDocument> result = new PageSelector(new TreeSet<>(pages)).split(source);
         PDDocument selected = result.get(0);

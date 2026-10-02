@@ -45,7 +45,7 @@ final class SafeOutput implements AutoCloseable {
     static SafeOutput to(Path output) throws IOException {
         Path target = output.toAbsolutePath().normalize();
         if (Files.isDirectory(target)) {
-            throw new PdfToolException("La salida «" + target + "» es una carpeta; indica un nombre de archivo.");
+            throw new PdfToolException("Output \"" + target + "\" is a folder; specify a file name.");
         }
         Path dir = target.getParent();
         Files.createDirectories(dir);

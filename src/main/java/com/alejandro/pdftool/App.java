@@ -23,7 +23,7 @@ public class App {
             if (args.length > 0) {
                 System.exit(1);
             }
-            System.out.println("(No hay entorno gráfico disponible: se muestra la ayuda de la línea de comandos)");
+            System.out.println("(No graphical environment available: showing command-line help)");
         }
         int exitCode = run(args);
         if (exitCode != 0) {
@@ -57,7 +57,7 @@ public class App {
                 case "images2pdf" -> runImagesToPdf(rest);
                 case "pdf2images" -> runPdfToImages(rest);
                 default -> {
-                    System.err.println("Comando no reconocido: " + cmd);
+                    System.err.println("Unknown command: " + cmd);
                     printHelp();
                     return 2;
                 }
@@ -83,22 +83,22 @@ public class App {
     static void runMerge(String[] args) throws IOException {
         var list = List.of(args);
         var out = Optional.ofNullable(CliUtil.optValue(list, "-o")).map(Path::of)
-                .orElseThrow(() -> new IllegalArgumentException("Uso: merge -o <salida.pdf> <in1.pdf> <carpeta> [...]"));
+                .orElseThrow(() -> new IllegalArgumentException("Usage: merge -o <out.pdf> <in1.pdf> <folder> [...]"));
         var inputs = PdfOps.expandPdfInputs(paths(CliUtil.positionals(list, Set.of("-o"), Set.of())), out);
         if (inputs.isEmpty()) {
-            throw new IllegalArgumentException("No se encontraron archivos PDF para fusionar.");
+            throw new IllegalArgumentException("No PDF files found to merge.");
         }
         int pages = PdfOps.merge(inputs, out);
-        System.out.println("Se han fusionado " + inputs.size() + " archivos (" + pages + " páginas) en: " + out);
+        System.out.println("Merged " + inputs.size() + " files (" + pages + " pages) into: " + out);
     }
 
     static void runSplit(String[] args) throws IOException {
         if (args.length < 3)
-            throw new IllegalArgumentException("Uso: split <in.pdf> -ranges \"1-3,7,10-*\" -o <prefijo>  |  split <in.pdf> -every <N> -o <prefijo>");
+            throw new IllegalArgumentException("Usage: split <in.pdf> -ranges \"1-3,7,10-*\" -o <prefix>  |  split <in.pdf> -every <N> -o <prefix>");
         var list = List.of(args);
         var in = Path.of(list.getFirst());
         var prefix = Optional.ofNullable(CliUtil.optValue(list, "-o")).map(Path::of)
-                .orElseThrow(() -> new IllegalArgumentException("Debe indicar -o <prefijo>"));
+                .orElseThrow(() -> new IllegalArgumentException("Missing -o <prefix>"));
         var every = CliUtil.optValue(list, "-every");
         List<Path> parts;
         if (every != null) {
@@ -106,140 +106,140 @@ public class App {
                     ProgressListener.NONE);
         } else {
             var ranges = Optional.ofNullable(CliUtil.optValue(list, "-ranges")).map(CliUtil::parseRanges)
-                    .orElseThrow(() -> new IllegalArgumentException("Debe indicar -ranges o -every"));
+                    .orElseThrow(() -> new IllegalArgumentException("Missing -ranges or -every"));
             parts = PdfOps.splitByRanges(in, prefix, ranges);
         }
-        System.out.println("Se han creado " + parts.size() + " archivos:");
+        System.out.println("Created " + parts.size() + " files:");
         parts.forEach(p -> System.out.println("  " + p));
     }
 
     static void runCompress(String[] args) throws IOException {
         if (args.length < 3)
-            throw new IllegalArgumentException("Uso: compress <in.pdf> -o <out.pdf> [-q 0.6] [--remove-metadata] [--max-dpi 150]");
+            throw new IllegalArgumentException("Usage: compress <in.pdf> -o <out.pdf> [-q 0.6] [--remove-metadata] [--max-dpi 150]");
         var list = List.of(args);
         var in = Path.of(list.getFirst());
         var out = Optional.ofNullable(CliUtil.optValue(list, "-o")).map(Path::of)
-                .orElseThrow(() -> new IllegalArgumentException("Debe indicar -o <out.pdf>"));
+                .orElseThrow(() -> new IllegalArgumentException("Missing -o <out.pdf>"));
         var quality = Optional.ofNullable(CliUtil.optValue(list, "-q"))
                 .map(q -> CliUtil.parseDouble(q, "-q", 0.1, 1.0)).orElse(PdfOps.DEFAULT_JPEG_QUALITY);
         var maxDpi = Optional.ofNullable(CliUtil.optValue(list, "--max-dpi"))
                 .map(d -> CliUtil.parseInt(d, "--max-dpi", 36, 2400)).orElse(null);
         var removeMeta = list.contains("--remove-metadata");
         CompressResult result = PdfOps.compress(in, out, quality, maxDpi, removeMeta);
-        System.out.println("Comprimido: " + Formats.compression(result) + " · " + result.imagesRecompressed()
-                + " de " + result.imagesFound() + " imágenes recomprimidas → " + out);
+        System.out.println("Compressed: " + Formats.compression(result) + " · " + result.imagesRecompressed()
+                + " of " + result.imagesFound() + " images recompressed → " + out);
     }
 
     static void runRotate(String[] args) throws IOException {
         var list = List.of(args);
         if (list.size() < 4)
-            throw new IllegalArgumentException("Uso: rotate <in.pdf> -o <out.pdf> -deg <90|180|270> [-pages \"1-3,5\"]");
+            throw new IllegalArgumentException("Usage: rotate <in.pdf> -o <out.pdf> -deg <90|180|270> [-pages \"1-3,5\"]");
         var in = Path.of(list.getFirst());
         var out = Optional.ofNullable(CliUtil.optValue(list, "-o")).map(Path::of)
-                .orElseThrow(() -> new IllegalArgumentException("Debe indicar -o <out.pdf>"));
+                .orElseThrow(() -> new IllegalArgumentException("Missing -o <out.pdf>"));
         var deg = Optional.ofNullable(CliUtil.optValue(list, "-deg"))
                 .map(d -> CliUtil.parseInt(d, "-deg", -360, 360))
-                .orElseThrow(() -> new IllegalArgumentException("Debe indicar -deg"));
+                .orElseThrow(() -> new IllegalArgumentException("Missing -deg"));
         var pages = Optional.ofNullable(CliUtil.optValue(list, "-pages")).map(CliUtil::parseRanges)
                 .orElse(List.of(CliUtil.PageRange.ALL));
         int rotated = PdfOps.rotate(in, out, deg, pages);
-        System.out.println("Se han girado " + rotated + " páginas → " + out);
+        System.out.println("Rotated " + rotated + " pages → " + out);
     }
 
     static void runWatermark(String[] args) throws IOException {
         var list = List.of(args);
         if (list.size() < 4)
-            throw new IllegalArgumentException("Uso: watermark <in.pdf> -o <out.pdf> -text \"CONFIDENTIAL\" [-opacity 0.2] [-color #C80000]");
+            throw new IllegalArgumentException("Usage: watermark <in.pdf> -o <out.pdf> -text \"CONFIDENTIAL\" [-opacity 0.2] [-color #C80000]");
         var in = Path.of(list.getFirst());
         var out = Optional.ofNullable(CliUtil.optValue(list, "-o")).map(Path::of)
-                .orElseThrow(() -> new IllegalArgumentException("Debe indicar -o <out.pdf>"));
+                .orElseThrow(() -> new IllegalArgumentException("Missing -o <out.pdf>"));
         var text = Optional.ofNullable(CliUtil.optValue(list, "-text"))
-                .orElseThrow(() -> new IllegalArgumentException("Debe indicar -text"));
+                .orElseThrow(() -> new IllegalArgumentException("Missing -text"));
         var opacity = Optional.ofNullable(CliUtil.optValue(list, "-opacity"))
                 .map(o -> (float) CliUtil.parseDouble(o, "-opacity", 0.01, 1.0)).orElse(PdfOps.DEFAULT_WATERMARK_OPACITY);
         var color = Optional.ofNullable(CliUtil.optValue(list, "-color"))
                 .map(c -> CliUtil.parseColor(c, "-color")).orElse(PdfOps.DEFAULT_WATERMARK_COLOR);
         PdfOps.watermarkText(in, out, text, opacity, color, ProgressListener.NONE);
-        System.out.println("Marca de agua añadida → " + out);
+        System.out.println("Watermark added → " + out);
     }
 
     static void runText(String[] args) throws IOException {
         var list = List.of(args);
-        if (list.isEmpty()) throw new IllegalArgumentException("Uso: text <in.pdf> [-o <out.txt>]");
+        if (list.isEmpty()) throw new IllegalArgumentException("Usage: text <in.pdf> [-o <out.txt>]");
         var in = Path.of(list.getFirst());
         var out = Optional.ofNullable(CliUtil.optValue(list, "-o")).map(Path::of).orElse(null);
         PdfOps.extractText(in, out);
         if (out != null) {
-            System.out.println("Texto guardado en: " + out);
+            System.out.println("Text saved to: " + out);
         }
     }
 
     static void runInfo(String[] args) throws IOException {
         var list = List.of(args);
-        if (list.isEmpty()) throw new IllegalArgumentException("Uso: info <in.pdf>");
+        if (list.isEmpty()) throw new IllegalArgumentException("Usage: info <in.pdf>");
         PdfOps.printInfo(Path.of(list.getFirst()));
     }
 
     static void runEncrypt(String[] args) throws IOException {
         var list = List.of(args);
         if (list.size() < 5)
-            throw new IllegalArgumentException("Uso: encrypt <in.pdf> -o <out.pdf> -ownerPwd <pwd> [-userPwd <pwd>] [-perm print,copy]");
+            throw new IllegalArgumentException("Usage: encrypt <in.pdf> -o <out.pdf> -ownerPwd <pwd> [-userPwd <pwd>] [-perm print,copy]");
         var in = Path.of(list.getFirst());
         var out = Optional.ofNullable(CliUtil.optValue(list, "-o")).map(Path::of)
-                .orElseThrow(() -> new IllegalArgumentException("Debe indicar -o <out.pdf>"));
+                .orElseThrow(() -> new IllegalArgumentException("Missing -o <out.pdf>"));
         var owner = Optional.ofNullable(CliUtil.optValue(list, "-ownerPwd"))
-                .orElseThrow(() -> new IllegalArgumentException("Debe indicar -ownerPwd"));
+                .orElseThrow(() -> new IllegalArgumentException("Missing -ownerPwd"));
         var user = CliUtil.optValue(list, "-userPwd");
         var perms = Optional.ofNullable(CliUtil.optValue(list, "-perm"))
                 .map(PdfPermission::parseCli)
                 .orElse(Set.of());
         PdfOps.encrypt(in, out, owner, user, perms);
-        System.out.println("PDF protegido con AES-256 → " + out + "  (permisos: "
-                + (perms.isEmpty() ? "ninguno" : perms.stream().map(PdfPermission::cliName).collect(Collectors.joining(", ")))
+        System.out.println("PDF encrypted with AES-256 → " + out + "  (permissions: "
+                + (perms.isEmpty() ? "none" : perms.stream().map(PdfPermission::cliName).collect(Collectors.joining(", ")))
                 + ")");
     }
 
     static void runDecrypt(String[] args) throws IOException {
         var list = List.of(args);
-        if (list.size() < 3) throw new IllegalArgumentException("Uso: decrypt <in.pdf> -o <out.pdf> -pwd <password>");
+        if (list.size() < 3) throw new IllegalArgumentException("Usage: decrypt <in.pdf> -o <out.pdf> -pwd <password>");
         var in = Path.of(list.getFirst());
         var out = Optional.ofNullable(CliUtil.optValue(list, "-o")).map(Path::of)
-                .orElseThrow(() -> new IllegalArgumentException("Debe indicar -o <out.pdf>"));
+                .orElseThrow(() -> new IllegalArgumentException("Missing -o <out.pdf>"));
         var pwd = Optional.ofNullable(CliUtil.optValue(list, "-pwd"))
-                .orElseThrow(() -> new IllegalArgumentException("Debe indicar -pwd"));
+                .orElseThrow(() -> new IllegalArgumentException("Missing -pwd"));
         PdfOps.decrypt(in, out, pwd);
-        System.out.println("Protección eliminada → " + out);
+        System.out.println("Protection removed → " + out);
     }
 
     static void runExtract(String[] args) throws IOException {
         var list = List.of(args);
         if (list.size() < 5)
-            throw new IllegalArgumentException("Uso: extract <in.pdf> -o <out.pdf> -pages \"5,1-3\"");
+            throw new IllegalArgumentException("Usage: extract <in.pdf> -o <out.pdf> -pages \"5,1-3\"");
         var in = Path.of(list.getFirst());
-        var out = requiredPath(list, "-o", "Debe indicar -o <out.pdf>");
-        var pages = CliUtil.parseRanges(required(list, "-pages", "Debe indicar -pages"));
+        var out = requiredPath(list, "-o", "Missing -o <out.pdf>");
+        var pages = CliUtil.parseRanges(required(list, "-pages", "Missing -pages"));
         int count = PdfOps.extractPages(in, out, pages);
-        System.out.println("Se han extraído " + count + " páginas → " + out);
+        System.out.println("Extracted " + count + " pages → " + out);
     }
 
     static void runDelete(String[] args) throws IOException {
         var list = List.of(args);
         if (list.size() < 5)
-            throw new IllegalArgumentException("Uso: delete <in.pdf> -o <out.pdf> -pages \"2,5-7\"");
+            throw new IllegalArgumentException("Usage: delete <in.pdf> -o <out.pdf> -pages \"2,5-7\"");
         var in = Path.of(list.getFirst());
-        var out = requiredPath(list, "-o", "Debe indicar -o <out.pdf>");
-        var pages = CliUtil.parseRanges(required(list, "-pages", "Debe indicar -pages"));
+        var out = requiredPath(list, "-o", "Missing -o <out.pdf>");
+        var pages = CliUtil.parseRanges(required(list, "-pages", "Missing -pages"));
         int remaining = PdfOps.deletePages(in, out, pages);
-        System.out.println("Páginas eliminadas; quedan " + remaining + " → " + out);
+        System.out.println("Pages deleted; " + remaining + " remaining → " + out);
     }
 
     static void runPageNumbers(String[] args) throws IOException {
         var list = List.of(args);
         if (list.size() < 3)
-            throw new IllegalArgumentException("Uso: pagenum <in.pdf> -o <out.pdf> [-format \"Página {n} de {total}\"] "
+            throw new IllegalArgumentException("Usage: pagenum <in.pdf> -o <out.pdf> [-format \"Page {n} of {total}\"] "
                     + "[-pos bottom-center] [-size 10] [-margin 10] [-start 1] [-pages \"2-*\"]");
         var in = Path.of(list.getFirst());
-        var out = requiredPath(list, "-o", "Debe indicar -o <out.pdf>");
+        var out = requiredPath(list, "-o", "Missing -o <out.pdf>");
         var defaults = PageNumberOptions.defaults();
         var options = new PageNumberOptions(
                 Optional.ofNullable(CliUtil.optValue(list, "-format")).orElse(defaults.format()),
@@ -254,15 +254,15 @@ public class App {
                         .map(s -> CliUtil.parseInt(s, "-start", 0, 1_000_000)).orElse(defaults.startNumber()),
                 Optional.ofNullable(CliUtil.optValue(list, "-pages")).map(CliUtil::parseRanges).orElse(List.of()));
         int numbered = PdfOps.addPageNumbers(in, out, options, ProgressListener.NONE);
-        System.out.println("Se han numerado " + numbered + " páginas → " + out);
+        System.out.println("Numbered " + numbered + " pages → " + out);
     }
 
     static void runMetadata(String[] args) throws IOException {
         var list = List.of(args);
         if (list.size() < 3)
-            throw new IllegalArgumentException("Uso: metadata <in.pdf> -o <out.pdf> [-title …] [-author …] [-subject …] [-keywords …]");
+            throw new IllegalArgumentException("Usage: metadata <in.pdf> -o <out.pdf> [-title …] [-author …] [-subject …] [-keywords …]");
         var in = Path.of(list.getFirst());
-        var out = requiredPath(list, "-o", "Debe indicar -o <out.pdf>");
+        var out = requiredPath(list, "-o", "Missing -o <out.pdf>");
         // Los campos que no se indican se conservan; un valor vacío ("") los borra
         DocumentMetadata current = PdfOps.info(in).metadata();
         var metadata = new DocumentMetadata(
@@ -271,41 +271,41 @@ public class App {
                 Optional.ofNullable(CliUtil.optValue(list, "-subject")).orElse(current.subject()),
                 Optional.ofNullable(CliUtil.optValue(list, "-keywords")).orElse(current.keywords()));
         boolean complete = PdfOps.updateMetadata(in, out, metadata);
-        System.out.println("Metadatos actualizados → " + out);
+        System.out.println("Metadata updated → " + out);
         if (!complete) {
-            System.out.println("Aviso: los metadatos XMP del PDF no se podían leer y se han dejado como estaban.");
+            System.out.println("Warning: the PDF's XMP metadata could not be read and was left unchanged.");
         }
     }
 
     static void runImagesToPdf(String[] args) throws IOException {
         var list = List.of(args);
         var out = Optional.ofNullable(CliUtil.optValue(list, "-o")).map(Path::of)
-                .orElseThrow(() -> new IllegalArgumentException("Uso: images2pdf -o <salida.pdf> <imagen1> <carpeta> [...] [-size a4|letter|image] [-margin 10]"));
+                .orElseThrow(() -> new IllegalArgumentException("Usage: images2pdf -o <out.pdf> <img1> <folder> [...] [-size a4|letter|image] [-margin 10]"));
         var size = Optional.ofNullable(CliUtil.optValue(list, "-size")).map(ImagePageSize::fromCli).orElse(ImagePageSize.A4);
         var margin = Optional.ofNullable(CliUtil.optValue(list, "-margin"))
                 .map(m -> (float) (CliUtil.parseDouble(m, "-margin (mm)", 0, 100) * MM_TO_PT)).orElse(0f);
         var images = PdfOps.expandImageInputs(
                 paths(CliUtil.positionals(list, Set.of("-o", "-size", "-margin"), Set.of())), out);
         if (images.isEmpty()) {
-            throw new IllegalArgumentException("No se encontraron imágenes (JPG, PNG, GIF, BMP o TIFF).");
+            throw new IllegalArgumentException("No images found (JPG, PNG, GIF, BMP or TIFF).");
         }
         int pages = PdfOps.imagesToPdf(images, out, size, margin, ProgressListener.NONE);
-        System.out.println("Se ha creado un PDF de " + pages + " páginas a partir de " + images.size()
-                + " imágenes: " + out);
+        System.out.println("Created a " + pages + "-page PDF from " + images.size()
+                + " images: " + out);
     }
 
     static void runPdfToImages(String[] args) throws IOException {
         var list = List.of(args);
         if (list.size() < 3)
-            throw new IllegalArgumentException("Uso: pdf2images <in.pdf> -o <carpeta> [-format png|jpg] [-dpi 150] [-pages \"1-3\"] [-name <base>]");
+            throw new IllegalArgumentException("Usage: pdf2images <in.pdf> -o <folder> [-format png|jpg] [-dpi 150] [-pages \"1-3\"] [-name <base>]");
         var in = Path.of(list.getFirst());
-        var outDir = requiredPath(list, "-o", "Debe indicar -o <carpeta>");
+        var outDir = requiredPath(list, "-o", "Missing -o <folder>");
         var format = Optional.ofNullable(CliUtil.optValue(list, "-format")).map(ImageFormat::fromCli).orElse(ImageFormat.PNG);
         var dpi = Optional.ofNullable(CliUtil.optValue(list, "-dpi")).map(d -> CliUtil.parseInt(d, "-dpi", 36, 600)).orElse(150);
         var pages = Optional.ofNullable(CliUtil.optValue(list, "-pages")).map(CliUtil::parseRanges).orElse(List.of());
         var name = Optional.ofNullable(CliUtil.optValue(list, "-name")).orElse(InputFiles.baseName(in));
         List<Path> files = PdfOps.pdfToImages(in, outDir, name, format, dpi, pages, ProgressListener.NONE);
-        System.out.println("Se han creado " + files.size() + " imágenes en: " + outDir);
+        System.out.println("Created " + files.size() + " images in: " + outDir);
     }
 
     private static String required(List<String> list, String flag, String message) {
@@ -322,27 +322,27 @@ public class App {
 
     static void printHelp() {
         System.out.println("""
-                PDF Tool - comandos:
-                  (sin argumentos)  abre la interfaz gráfica; también: gui
-                  merge -o <out.pdf> <in1.pdf> <carpeta> [...]  (Acepta archivos y/o carpetas)
+                PDF Tool - commands:
+                  (no arguments)  opens the graphical interface; also: gui
+                  merge -o <out.pdf> <in1.pdf> <folder> [...]  (accepts files and/or folders)
                   split <in.pdf> -ranges "1-3,7,10-*" -o <prefix>   |   split <in.pdf> -every <N> -o <prefix>
-                  extract <in.pdf> -o <out.pdf> -pages "5,1-3"      (en el orden indicado)
+                  extract <in.pdf> -o <out.pdf> -pages "5,1-3"      (in the given order)
                   delete <in.pdf> -o <out.pdf> -pages "2,5-7"
                   compress <in.pdf> -o <out.pdf> [-q 0.6] [--max-dpi 150] [--remove-metadata]
                   rotate <in.pdf> -o <out.pdf> -deg <90|180|270> [-pages "1-3,5"]
                   watermark <in.pdf> -o <out.pdf> -text "CONFIDENTIAL" [-opacity 0.2] [-color #C80000]
-                  pagenum <in.pdf> -o <out.pdf> [-format "Página {n} de {total}"] [-pos bottom-center]
+                  pagenum <in.pdf> -o <out.pdf> [-format "Page {n} of {total}"] [-pos bottom-center]
                           [-size 10] [-margin 10] [-start 1] [-pages "2-*"]
-                  images2pdf -o <out.pdf> <img1> <carpeta> [...] [-size a4|letter|image] [-margin 10]
-                  pdf2images <in.pdf> -o <carpeta> [-format png|jpg] [-dpi 150] [-pages "1-3"] [-name <base>]
+                  images2pdf -o <out.pdf> <img1> <folder> [...] [-size a4|letter|image] [-margin 10]
+                  pdf2images <in.pdf> -o <folder> [-format png|jpg] [-dpi 150] [-pages "1-3"] [-name <base>]
                   text <in.pdf> [-o <out.txt>]
                   info <in.pdf>
                   metadata <in.pdf> -o <out.pdf> [-title …] [-author …] [-subject …] [-keywords …]
                   encrypt <in.pdf> -o <out.pdf> -ownerPwd <pwd> [-userPwd <pwd>]
                           [-perm print,copy,modify,annotate,fill,assemble]
-                  decrypt <in.pdf> -o <out.pdf> -pwd <contraseña de propietario>
+                  decrypt <in.pdf> -o <out.pdf> -pwd <owner password>
 
-                Márgenes en milímetros. Añade -Dpdftool.debug=true a java para ver los detalles técnicos de un error.
+                Margins are in millimeters. Pass -Dpdftool.debug=true to java to see the technical details of an error.
                 """);
     }
 }

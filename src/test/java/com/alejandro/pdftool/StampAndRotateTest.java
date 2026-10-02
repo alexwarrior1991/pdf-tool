@@ -106,7 +106,7 @@ class StampAndRotateTest {
         Path in = TestPdfs.textPdf(dir.resolve("in.pdf"), 1);
         IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
                 () -> PdfOps.watermarkText(in, dir.resolve("o.pdf"), "Hola → 世界", 0.2f, Color.RED, ProgressListener.NONE));
-        assertTrue(e.getMessage().contains("«→»") && e.getMessage().contains("«世»"), e.getMessage());
+        assertTrue(e.getMessage().contains("\"→\"") && e.getMessage().contains("\"世\""), e.getMessage());
     }
 
     @Test
@@ -122,7 +122,7 @@ class StampAndRotateTest {
     void pageNumbersGoToTheVisibleBottom(int rotation) throws IOException {
         Path in = TestPdfs.rotatedBlankPdf(dir.resolve("r" + rotation + ".pdf"), rotation);
         Path out = dir.resolve("n" + rotation + ".pdf");
-        PageNumberOptions options = new PageNumberOptions("Página {n} de {total}",
+        PageNumberOptions options = new PageNumberOptions("Page {n} of {total}",
                 PageNumberOptions.Position.BOTTOM_CENTER, 20, 20, 1, List.of());
 
         PdfOps.addPageNumbers(in, out, options, ProgressListener.NONE);

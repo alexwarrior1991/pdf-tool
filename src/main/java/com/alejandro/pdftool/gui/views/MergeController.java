@@ -26,13 +26,13 @@ public class MergeController extends OperationView {
     @FXML
     private void initialize() {
         filesController.configure(FileListController.Kind.PDF);
-        outputController.configure(FileFieldController.Mode.SAVE_PDF, "Ruta del PDF que se va a crear");
-        runBarController.setText("Unir PDF");
+        outputController.configure(FileFieldController.Mode.SAVE_PDF, "Path of the PDF to create");
+        runBarController.setText("Merge PDFs");
         runBarController.setOnRun(this::run);
         filesController.files().addListener((ListChangeListener<Path>) change -> {
             if (!filesController.files().isEmpty()) {
                 Path folder = filesController.files().get(0).toAbsolutePath().getParent();
-                outputController.suggest(OutputNames.unique(folder, "unido", "pdf"));
+                outputController.suggest(OutputNames.unique(folder, "merged", "pdf"));
             }
         });
     }
@@ -40,14 +40,14 @@ public class MergeController extends OperationView {
     private void run() {
         List<Path> files = List.copyOf(filesController.files());
         if (files.size() < 2) {
-            invalid("Añade al menos dos PDF para unir.");
+            invalid("Add at least two PDFs to merge.");
             return;
         }
-        Path output = outputFile(outputController, "Indica dónde guardar el PDF resultante.");
+        Path output = outputFile(outputController, "Choose where to save the resulting PDF.");
         if (output == null) return;
-        runBarController.start("Uniendo " + files.size() + " archivos…",
+        runBarController.start("Merging " + files.size() + " files…",
                 progress -> PdfOps.merge(files, output, progress),
-                pages -> runBarController.success("Se han unido " + files.size() + " PDF (" + pages
-                        + " páginas) en «" + fileName(output) + "».", output, null));
+                pages -> runBarController.success("Merged " + files.size() + " PDFs (" + pages
+                        + (pages == 1 ? " page" : " pages") + ") into \"" + fileName(output) + "\".", output, null));
     }
 }

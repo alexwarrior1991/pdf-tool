@@ -38,11 +38,11 @@ public class RotateController extends OperationView {
 
     @FXML
     private void initialize() {
-        inputController.configure(FileFieldController.Mode.OPEN_PDF, "PDF que quieres rotar");
-        outputController.configure(FileFieldController.Mode.SAVE_PDF, "Ruta del PDF que se va a crear");
-        runBarController.setText("Rotar páginas");
+        inputController.configure(FileFieldController.Mode.OPEN_PDF, "PDF to rotate");
+        outputController.configure(FileFieldController.Mode.SAVE_PDF, "Path of the PDF to create");
+        runBarController.setText("Rotate pages");
         runBarController.setOnRun(this::run);
-        suggestOutputBesides(inputController, outputController, "rotado", "pdf");
+        suggestOutputBesides(inputController, outputController, "rotated", "pdf");
         inputController.pathProperty().addListener((obs, old, path) -> thumbnailsController.load(path));
         thumbnailsController.bindRangesField(rangesField);
         rangesField.disableProperty().bind(somePages.selectedProperty().not());
@@ -70,19 +70,19 @@ public class RotateController extends OperationView {
     }
 
     private void run() {
-        Path input = inputFile(inputController, "Elige el PDF que quieres rotar.");
+        Path input = inputFile(inputController, "Choose the PDF to rotate.");
         if (input == null) return;
         List<CliUtil.PageRange> ranges = allPages.isSelected() ? List.of()
-                : ranges(rangesField, true, "Marca las páginas a rotar (clic en las miniaturas o escribe p. ej. 1-3, 7).");
+                : ranges(rangesField, true, "Select the pages to rotate (click the thumbnails or type e.g. 1-3, 7).");
         if (ranges == null) return;
-        Path output = outputFile(outputController, "Indica dónde guardar el PDF resultante.");
+        Path output = outputFile(outputController, "Choose where to save the resulting PDF.");
         if (output == null) return;
         int degrees = degrees();
-        runBarController.start("Rotando páginas…",
+        runBarController.start("Rotating pages…",
                 progress -> PdfOps.rotate(input, output, degrees, ranges),
                 rotated -> {
-                    runBarController.success("Se han rotado " + rotated + (rotated == 1 ? " página" : " páginas")
-                            + ": «" + fileName(output) + "».", output, null);
+                    runBarController.success("Rotated " + rotated + (rotated == 1 ? " page" : " pages")
+                            + ": \"" + fileName(output) + "\".", output, null);
                     if (sameFile(input, output)) { // se ha sobrescrito: mostrar el PDF tal y como ha quedado
                         rangesField.clear();
                         inputController.refresh();

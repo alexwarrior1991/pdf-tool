@@ -10,22 +10,22 @@
             xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.alejandro.pdftool.gui.views.DecryptController">
     <VBox spacing="16" styleClass="page">
         <VBox spacing="4">
-            <Label styleClass="view-title" text="Quitar contraseña"/>
+            <Label styleClass="view-title" text="Remove password"/>
             <Label styleClass="view-description" wrapText="true"
-                   text="Crea una copia sin protección de un PDF cifrado. Hace falta la contraseña de propietario (la que permite cambiar los permisos), no basta con la de apertura."/>
+                   text="Create an unprotected copy of an encrypted PDF. You need the owner password (the one that allows changing permissions); the open password is not enough."/>
         </VBox>
         <VBox spacing="10" styleClass="section">
-            <Label styleClass="section-label" text="1. PDF protegido"/>
+            <Label styleClass="section-label" text="1. Protected PDF"/>
             <fx:include fx:id="input" source="file-field.fxml"/>
         </VBox>
         <VBox spacing="10" styleClass="section">
-            <Label styleClass="section-label" text="2. Contraseña de propietario"/>
+            <Label styleClass="section-label" text="2. Owner password"/>
             <HBox>
-                <PasswordField fx:id="passwordField" prefWidth="320" promptText="Contraseña"/>
+                <PasswordField fx:id="passwordField" prefWidth="320" promptText="Password"/>
             </HBox>
         </VBox>
         <VBox spacing="10" styleClass="section">
-            <Label styleClass="section-label" text="3. Dónde guardar la copia sin protección"/>
+            <Label styleClass="section-label" text="3. Where to save the unprotected copy"/>
             <fx:include fx:id="output" source="file-field.fxml"/>
         </VBox>
         <fx:include fx:id="runBar" source="run-bar.fxml"/>

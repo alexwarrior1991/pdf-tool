@@ -42,9 +42,9 @@ public class PdfToImagesController extends OperationView {
 
     @FXML
     private void initialize() {
-        inputController.configure(FileFieldController.Mode.OPEN_PDF, "PDF del que quieres sacar imágenes");
-        folderController.configure(FileFieldController.Mode.DIRECTORY, "Carpeta donde guardar las imágenes");
-        runBarController.setText("Exportar imágenes");
+        inputController.configure(FileFieldController.Mode.OPEN_PDF, "PDF to export as images");
+        folderController.configure(FileFieldController.Mode.DIRECTORY, "Folder to save the images in");
+        runBarController.setText("Export images");
         runBarController.setOnRun(this::run);
         thumbnailsController.setSelectable(true);
         thumbnailsController.bindRangesField(rangesField);
@@ -56,11 +56,11 @@ public class PdfToImagesController extends OperationView {
             public String toString(Integer dpi) {
                 if (dpi == null) return "";
                 return switch (dpi) {
-                    case 72, 96 -> dpi + " ppp (pantalla, ligero)";
-                    case 150 -> dpi + " ppp (recomendado)";
-                    case 300 -> dpi + " ppp (impresión)";
-                    case 600 -> dpi + " ppp (máxima, pesado)";
-                    default -> dpi + " ppp";
+                    case 72, 96 -> dpi + " DPI (screen, small files)";
+                    case 150 -> dpi + " DPI (recommended)";
+                    case 300 -> dpi + " DPI (print)";
+                    case 600 -> dpi + " DPI (maximum, large files)";
+                    default -> dpi + " DPI";
                 };
             }
 
@@ -73,7 +73,7 @@ public class PdfToImagesController extends OperationView {
         inputController.pathProperty().addListener((obs, old, path) -> {
             thumbnailsController.load(path);
             if (path != null && Files.isRegularFile(path)) {
-                folderController.suggest(OutputNames.folderBesides(path, "imagenes"));
+                folderController.suggest(OutputNames.folderBesides(path, "images"));
                 if (baseNameField.getText().isBlank() || old == null
                         || baseNameField.getText().equals(InputFiles.baseName(old))) {
                     baseNameField.setText(InputFiles.baseName(path));
@@ -83,18 +83,18 @@ public class PdfToImagesController extends OperationView {
     }
 
     private void run() {
-        Path input = inputFile(inputController, "Elige el PDF.");
+        Path input = inputFile(inputController, "Choose the PDF.");
         if (input == null) return;
         List<CliUtil.PageRange> ranges = ranges(rangesField, false, null);
         if (ranges == null) return;
         Path folder = folderController.getPath();
         if (folder == null) {
-            invalid("Elige la carpeta donde guardar las imágenes.");
+            invalid("Choose the folder to save the images in.");
             return;
         }
         String base = baseNameField.getText().strip();
         if (base.isEmpty() || base.matches(".*[\\\\/:*?\"<>|].*")) {
-            invalid("Escribe un nombre válido para las imágenes (sin \\ / : * ? \" < > |).");
+            invalid("Enter a valid name for the images (without \\ / : * ? \" < > |).");
             return;
         }
         ImageFormat format = formatBox.getValue();
@@ -105,10 +105,10 @@ public class PdfToImagesController extends OperationView {
                 .map(page -> PdfOps.pageImagePath(folder, base, page, total, format)).toList()
                 : existingFiles(folder, Pattern.quote(base) + "_\\d{3,}\\." + format.extension());
         if (!runBarController.confirmOverwrite(planned)) return;
-        runBarController.start("Exportando páginas…",
+        runBarController.start("Exporting pages…",
                 progress -> PdfOps.pdfToImages(input, folder, base, format, dpi, ranges, progress),
-                files -> runBarController.success("Se han creado " + files.size()
-                        + (files.size() == 1 ? " imagen" : " imágenes") + " en «" + folder + "».",
+                files -> runBarController.success("Created " + files.size()
+                        + (files.size() == 1 ? " image" : " images") + " in \"" + folder + "\".",
                         files.size() == 1 ? files.get(0) : null, folder));
     }
 }

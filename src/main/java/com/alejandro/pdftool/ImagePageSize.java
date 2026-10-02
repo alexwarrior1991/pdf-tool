@@ -9,8 +9,8 @@ import java.util.stream.Collectors;
 /** Tamaño de página al convertir imágenes en PDF. */
 public enum ImagePageSize {
     A4("A4", PDRectangle.A4),
-    LETTER("Carta (EE. UU.)", PDRectangle.LETTER),
-    IMAGE("Tamaño de cada imagen", null);
+    LETTER("Letter (US)", PDRectangle.LETTER),
+    IMAGE("Image size", null);
 
     private final String label;
     private final PDRectangle paper;
@@ -36,7 +36,7 @@ public enum ImagePageSize {
         return Arrays.stream(values())
                 .filter(s -> s.name().equals(wanted))
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Tamaño de página desconocido «" + value + "». Usa: "
+                .orElseThrow(() -> new IllegalArgumentException("Unknown page size \"" + value + "\". Use: "
                         + Arrays.stream(values()).map(s -> s.name().toLowerCase(Locale.ROOT))
                         .collect(Collectors.joining(", "))));
     }

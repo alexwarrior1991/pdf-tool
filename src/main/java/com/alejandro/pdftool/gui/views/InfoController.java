@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 /** Pantalla «Información y metadatos» ({@code info.fxml}). */
 public class InfoController extends OperationView {
 
-    private static final DateTimeFormatter DATE = DateTimeFormatter.ofPattern("d MMM yyyy, HH:mm", Formats.SPANISH);
+    private static final DateTimeFormatter DATE = DateTimeFormatter.ofPattern("MMM d, yyyy, HH:mm", Formats.LOCALE);
 
     @FXML
     private FileFieldController inputController;
@@ -73,11 +73,11 @@ public class InfoController extends OperationView {
 
     @FXML
     private void initialize() {
-        inputController.configure(FileFieldController.Mode.OPEN_PDF, "PDF que quieres consultar o editar");
-        outputController.configure(FileFieldController.Mode.SAVE_PDF, "Ruta del PDF con los metadatos nuevos");
-        runBarController.setText("Guardar metadatos");
+        inputController.configure(FileFieldController.Mode.OPEN_PDF, "PDF to view or edit");
+        outputController.configure(FileFieldController.Mode.SAVE_PDF, "Path of the PDF with the new metadata");
+        runBarController.setText("Save metadata");
         runBarController.setOnRun(this::run);
-        suggestOutputBesides(inputController, outputController, "editado", "pdf");
+        suggestOutputBesides(inputController, outputController, "edited", "pdf");
         inputController.pathProperty().addListener((obs, old, path) -> load(path));
         showDetails(false);
     }
@@ -90,7 +90,7 @@ public class InfoController extends OperationView {
             loadStatus.setText("");
             return;
         }
-        loadStatus.setText("Leyendo…");
+        loadStatus.setText("Reading…");
         context.previews().submit(() -> {
             PdfInfo info;
             try {
@@ -124,12 +124,12 @@ public class InfoController extends OperationView {
         loadStatus.setText("");
         pagesValue.setText(String.valueOf(info.pages()));
         pageSizeValue.setText(info.pages() == 0 ? "—" : Formats.pageSize(info.pageWidth(), info.pageHeight())
-                + " (primera página)");
+                + " (first page)");
         fileSizeValue.setText(Formats.bytes(info.fileSize()));
         versionValue.setText("PDF " + info.version());
-        securityValue.setText(!info.encrypted() ? "Sin protección"
-                : "Protegido. Permite: " + (info.permissions().isEmpty() ? "nada (solo verlo)"
-                : info.permissions().stream().map(p -> p.label().toLowerCase(Formats.SPANISH))
+        securityValue.setText(!info.encrypted() ? "Not protected"
+                : "Protected. Allows: " + (info.permissions().isEmpty() ? "nothing (view only)"
+                : info.permissions().stream().map(p -> p.label().toLowerCase(Formats.LOCALE))
                 .collect(Collectors.joining(", "))));
         creatorValue.setText(orDash(info.creator()));
         producerValue.setText(orDash(info.producer()));
@@ -149,21 +149,21 @@ public class InfoController extends OperationView {
     }
 
     private void run() {
-        Path input = inputFile(inputController, "Elige el PDF cuyos metadatos quieres cambiar.");
+        Path input = inputFile(inputController, "Choose the PDF whose metadata you want to change.");
         if (input == null) return;
-        Path output = outputFile(outputController, "Indica dónde guardar el PDF con los metadatos nuevos.");
+        Path output = outputFile(outputController, "Choose where to save the PDF with the new metadata.");
         if (output == null) return;
         DocumentMetadata metadata = new DocumentMetadata(titleField.getText(), authorField.getText(),
                 subjectField.getText(), keywordsField.getText());
-        runBarController.start("Guardando metadatos…",
+        runBarController.start("Saving metadata…",
                 progress -> PdfOps.updateMetadata(input, output, metadata),
                 complete -> {
                     if (complete) {
-                        runBarController.success("Metadatos guardados en «" + fileName(output) + "».", output, null);
+                        runBarController.success("Metadata saved to \"" + fileName(output) + "\".", output, null);
                     } else {
-                        runBarController.warning("Metadatos guardados en «" + fileName(output) + "», pero el PDF tenía "
-                                + "metadatos XMP ilegibles que se han dejado como estaban: algunos programas podrían "
-                                + "seguir mostrando los datos antiguos.");
+                        runBarController.warning("Metadata saved to \"" + fileName(output) + "\", but the PDF had "
+                                + "unreadable XMP metadata that was left as is: some programs may "
+                                + "still show the old details.");
                     }
                     if (sameFile(input, output)) {
                         inputController.refresh();

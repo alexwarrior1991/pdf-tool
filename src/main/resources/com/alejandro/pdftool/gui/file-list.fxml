@@ -7,22 +7,22 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
-<!-- Lista ordenable de archivos (PDFs o imágenes) para unir o convertir. -->
+<!-- Reorderable list of files (PDFs or images) to merge or convert. -->
 <VBox fx:id="root" spacing="8" styleClass="file-list" stylesheets="@app.css"
       xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.alejandro.pdftool.gui.components.FileListController">
     <fx:define>
-        <Label fx:id="placeholder" styleClass="placeholder" text="Arrastra aquí archivos o carpetas"/>
+        <Label fx:id="placeholder" styleClass="placeholder" text="Drop files or folders here"/>
     </fx:define>
     <ListView fx:id="list" minHeight="160" prefHeight="260" VBox.vgrow="ALWAYS"/>
     <HBox alignment="CENTER_LEFT" spacing="6">
-        <Button mnemonicParsing="false" onAction="#addFiles" text="Añadir archivos…"/>
-        <Button mnemonicParsing="false" onAction="#addFolder" text="Añadir carpeta…"/>
+        <Button mnemonicParsing="false" onAction="#addFiles" text="Add files…"/>
+        <Button mnemonicParsing="false" onAction="#addFolder" text="Add folder…"/>
         <Region HBox.hgrow="ALWAYS"/>
-        <Button fx:id="upButton" mnemonicParsing="false" onAction="#moveUp" text="▲ Subir"/>
-        <Button fx:id="downButton" mnemonicParsing="false" onAction="#moveDown" text="▼ Bajar"/>
-        <Button fx:id="removeButton" mnemonicParsing="false" onAction="#remove" text="Quitar"/>
-        <Button fx:id="clearButton" mnemonicParsing="false" onAction="#clear" text="Vaciar"/>
+        <Button fx:id="upButton" mnemonicParsing="false" onAction="#moveUp" text="▲ Up"/>
+        <Button fx:id="downButton" mnemonicParsing="false" onAction="#moveDown" text="▼ Down"/>
+        <Button fx:id="removeButton" mnemonicParsing="false" onAction="#remove" text="Remove"/>
+        <Button fx:id="clearButton" mnemonicParsing="false" onAction="#clear" text="Clear"/>
     </HBox>
     <Label fx:id="countLabel" styleClass="field-hint"/>
 </VBox>

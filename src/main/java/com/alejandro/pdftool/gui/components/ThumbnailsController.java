@@ -141,7 +141,7 @@ public class ThumbnailsController {
             showStatus("");
             return;
         }
-        showStatus("Cargando vista previa…");
+        showStatus("Loading preview…");
         double scale = Screen.getPrimary().getOutputScaleX();
         int pixelWidth = (int) Math.round(THUMB_SIZE * Math.max(1, scale));
         context.previews().submit(() -> render(pdf, current, pixelWidth));
@@ -163,13 +163,13 @@ public class ThumbnailsController {
                 });
             }
             String status = total > shown
-                    ? "Vista previa de las primeras " + shown + " de " + total + " páginas"
-                    : total + (total == 1 ? " página" : " páginas");
+                    ? "Previewing the first " + shown + " of " + total + " pages"
+                    : total + (total == 1 ? " page" : " pages");
             Platform.runLater(() -> {
                 if (current == generation.get()) showStatus(status);
             });
         } catch (Exception | OutOfMemoryError e) {
-            String message = "Sin vista previa: " + ErrorMessages.describe(e);
+            String message = "No preview: " + ErrorMessages.describe(e);
             Platform.runLater(() -> {
                 if (current == generation.get()) showStatus(message);
             });

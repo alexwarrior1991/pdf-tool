@@ -4,8 +4,8 @@ import java.util.Locale;
 
 /** Formato de imagen al exportar páginas. */
 public enum ImageFormat {
-    PNG("png", "PNG (sin pérdida)"),
-    JPG("jpg", "JPG (más ligero)");
+    PNG("png", "PNG (lossless)"),
+    JPG("jpg", "JPG (smaller)");
 
     private final String extension;
     private final String label;
@@ -27,7 +27,7 @@ public enum ImageFormat {
         return switch (value.strip().toLowerCase(Locale.ROOT)) {
             case "png" -> PNG;
             case "jpg", "jpeg" -> JPG;
-            default -> throw new IllegalArgumentException("Formato de imagen desconocido «" + value + "». Usa: png, jpg");
+            default -> throw new IllegalArgumentException("Unknown image format \"" + value + "\". Use: png, jpg");
         };
     }
 

@@ -141,17 +141,17 @@ public class FileFieldController {
         Path chosen = switch (mode) {
             case DIRECTORY -> {
                 DirectoryChooser chooser = new DirectoryChooser();
-                chooser.setTitle("Elegir carpeta");
+                chooser.setTitle("Choose folder");
                 chooser.setInitialDirectory(initialDir);
                 yield toPath(chooser.showDialog(context.stage()));
             }
             case OPEN_PDF -> {
-                FileChooser chooser = fileChooser("Abrir PDF", initialDir, "pdf");
+                FileChooser chooser = fileChooser("Open PDF", initialDir, "pdf");
                 yield toPath(chooser.showOpenDialog(context.stage()));
             }
             case SAVE_PDF, SAVE_TEXT -> {
                 String extension = mode == Mode.SAVE_PDF ? "pdf" : "txt";
-                FileChooser chooser = fileChooser("Guardar como", initialDir, extension);
+                FileChooser chooser = fileChooser("Save as", initialDir, extension);
                 if (getPath() != null && getPath().getFileName() != null) {
                     chooser.setInitialFileName(getPath().getFileName().toString());
                 }
@@ -174,9 +174,9 @@ public class FileFieldController {
         chooser.setTitle(title);
         chooser.setInitialDirectory(initialDir);
         FileChooser.ExtensionFilter filter = extension.equals("pdf")
-                ? new FileChooser.ExtensionFilter("Documentos PDF (*.pdf)", "*.pdf", "*.PDF")
-                : new FileChooser.ExtensionFilter("Texto (*.txt)", "*.txt");
-        chooser.getExtensionFilters().addAll(filter, new FileChooser.ExtensionFilter("Todos los archivos", "*.*"));
+                ? new FileChooser.ExtensionFilter("PDF documents (*.pdf)", "*.pdf", "*.PDF")
+                : new FileChooser.ExtensionFilter("Text (*.txt)", "*.txt");
+        chooser.getExtensionFilters().addAll(filter, new FileChooser.ExtensionFilter("All files", "*.*"));
         return chooser;
     }
 
@@ -223,7 +223,7 @@ public class FileFieldController {
             hideSummary();
             return;
         }
-        showSummary("Leyendo…", false);
+        showSummary("Reading…", false);
         context.previews().submit(() -> {
             String text;
             boolean warning;
@@ -231,8 +231,8 @@ public class FileFieldController {
             try {
                 PdfInfo info = PdfOps.info(value);
                 pages = info.pages();
-                text = info.pages() + (info.pages() == 1 ? " página" : " páginas") + " · " + Formats.bytes(info.fileSize())
-                        + (info.encrypted() ? " · con restricciones de seguridad" : "");
+                text = info.pages() + (info.pages() == 1 ? " page" : " pages") + " · " + Formats.bytes(info.fileSize())
+                        + (info.encrypted() ? " · has security restrictions" : "");
                 warning = info.encrypted();
             } catch (Exception | Error e) {
                 text = ErrorMessages.describe(e);

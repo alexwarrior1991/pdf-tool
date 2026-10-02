@@ -71,7 +71,7 @@ public class MainController {
         try {
             return context.loader(id + ".fxml").load();
         } catch (IOException | RuntimeException e) {
-            Label error = new Label("No se ha podido abrir esta pantalla: " + ErrorMessages.describe(e));
+            Label error = new Label("Could not open this screen: " + ErrorMessages.describe(e));
             error.getStyleClass().add("view-error");
             error.setWrapText(true);
             return error;

@@ -35,7 +35,7 @@ public class FileListController {
 
     public enum Kind {
         PDF("PDF", InputFiles.PDF_EXTENSIONS),
-        IMAGES("imágenes", InputFiles.IMAGE_EXTENSIONS);
+        IMAGES("images", InputFiles.IMAGE_EXTENSIONS);
 
         private final String noun;
         private final Set<String> extensions;
@@ -89,8 +89,8 @@ public class FileListController {
 
     public void configure(Kind kind) {
         this.kind = kind;
-        placeholder.setText("Arrastra aquí " + (kind == Kind.PDF ? "archivos PDF" : "imágenes") + " o carpetas,\n"
-                + "o usa «Añadir archivos…»");
+        placeholder.setText("Drag " + (kind == Kind.PDF ? "PDF files" : "images") + " or folders here,\n"
+                + "or use \"Add files…\"");
         updateState();
     }
 
@@ -101,7 +101,7 @@ public class FileListController {
     @FXML
     private void addFiles() {
         FileChooser chooser = new FileChooser();
-        chooser.setTitle(kind == Kind.PDF ? "Añadir PDFs" : "Añadir imágenes");
+        chooser.setTitle(kind == Kind.PDF ? "Add PDFs" : "Add images");
         chooser.setInitialDirectory(context.initialDirectory());
         List<String> patterns = new ArrayList<>();
         for (String extension : kind.extensions) {
@@ -109,7 +109,7 @@ public class FileListController {
             patterns.add("*." + extension.toUpperCase());
         }
         chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter(
-                kind == Kind.PDF ? "Documentos PDF" : "Imágenes (JPG, PNG, GIF, BMP, TIFF)", patterns));
+                kind == Kind.PDF ? "PDF documents" : "Images (JPG, PNG, GIF, BMP, TIFF)", patterns));
         List<File> chosen = chooser.showOpenMultipleDialog(context.stage());
         if (chosen != null && !chosen.isEmpty()) {
             List<Path> paths = chosen.stream().map(File::toPath).sorted(InputFiles.NATURAL_ORDER).toList();
@@ -121,7 +121,7 @@ public class FileListController {
     @FXML
     private void addFolder() {
         DirectoryChooser chooser = new DirectoryChooser();
-        chooser.setTitle("Añadir carpeta");
+        chooser.setTitle("Add folder");
         chooser.setInitialDirectory(context.initialDirectory());
         File folder = chooser.showDialog(context.stage());
         if (folder != null) {
@@ -144,7 +144,7 @@ public class FileListController {
             return;
         }
         if (accepted.isEmpty()) {
-            countLabel.setText("No se han encontrado " + kind.noun + " en lo que has añadido.");
+            countLabel.setText("No " + kind.noun + " found in what you added.");
             return;
         }
         list.getItems().addAll(accepted);
@@ -198,8 +198,8 @@ public class FileListController {
         downButton.setDisable(noSelection);
         removeButton.setDisable(noSelection);
         clearButton.setDisable(count == 0);
-        countLabel.setText(count == 0 ? "" : count + (count == 1 ? " archivo" : " archivos")
-                + " · se procesarán en este orden (usa ▲ ▼ para cambiarlo)");
+        countLabel.setText(count == 0 ? "" : count + (count == 1 ? " file" : " files")
+                + " · processed in this order (use ▲ ▼ to change it)");
     }
 
     private void onDragOver(DragEvent event) {

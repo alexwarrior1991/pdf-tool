@@ -60,11 +60,11 @@ public class PdfOps {
 
     public static int merge(List<Path> inputs, Path output, ProgressListener progress) throws IOException {
         if (inputs.isEmpty()) {
-            throw new PdfToolException("No hay archivos PDF que unir.");
+            throw new PdfToolException("There are no PDF files to merge.");
         }
         for (Path input : inputs) {
             if (!Files.isRegularFile(input)) {
-                throw new PdfToolException("No existe el archivo «" + input + "».");
+                throw new PdfToolException("File \"" + input + "\" does not exist.");
             }
         }
         try (SafeOutput out = SafeOutput.to(output)) {
@@ -80,7 +80,7 @@ public class PdfOps {
                     try {
                         merger.appendDocument(merged, source);
                     } catch (IOException | RuntimeException e) {
-                        throw new PdfToolException("No se ha podido añadir «" + Pdfs.name(input) + "»: "
+                        throw new PdfToolException("Could not add \"" + Pdfs.name(input) + "\": "
                                 + ErrorMessages.describe(e), e);
                     }
                     progress.update(i + 1, inputs.size());
@@ -104,7 +104,7 @@ public class PdfOps {
     public static List<Path> splitByRanges(Path input, Path prefix, List<CliUtil.PageRange> ranges,
                                            ProgressListener progress) throws IOException {
         if (ranges.isEmpty()) {
-            throw new IllegalArgumentException("Indica al menos un rango de páginas.");
+            throw new IllegalArgumentException("Specify at least one page range.");
         }
         return split(input, prefix, total -> {
             List<int[]> bounds = new ArrayList<>();
@@ -122,7 +122,7 @@ public class PdfOps {
     public static List<Path> splitEvery(Path input, Path prefix, int pagesPerPart, ProgressListener progress)
             throws IOException {
         if (pagesPerPart < 1) {
-            throw new IllegalArgumentException("Cada parte debe tener al menos una página.");
+            throw new IllegalArgumentException("Each part must have at least one page.");
         }
         return split(input, prefix, total -> {
             List<int[]> bounds = new ArrayList<>();
@@ -147,14 +147,14 @@ public class PdfOps {
                 int total = source.getNumberOfPages();
                 List<int[]> parts = planner.plan(total);
                 if (parts.isEmpty()) {
-                    throw new PdfToolException("Ninguno de los rangos indicados existe en el documento (tiene "
-                            + total + " páginas).");
+                    throw new PdfToolException("None of the specified ranges exist in the document (it has "
+                            + total + " pages).");
                 }
                 for (int i = 0; i < parts.size(); i++) {
                     int[] part = parts.get(i);
                     Path target = partPath(prefix, i + 1);
                     if (target.toAbsolutePath().normalize().equals(original)) {
-                        throw new PdfToolException("La parte «" + target + "» sobrescribiría el PDF original; usa otro prefijo.");
+                        throw new PdfToolException("Part \"" + target + "\" would overwrite the original PDF; use a different prefix.");
                     }
                     SafeOutput out = SafeOutput.to(target);
                     outputs.add(out);
@@ -187,12 +187,12 @@ public class PdfOps {
      */
     public static int extractPages(Path input, Path output, List<CliUtil.PageRange> ranges) throws IOException {
         if (ranges.isEmpty()) {
-            throw new IllegalArgumentException("Indica qué páginas quieres extraer.");
+            throw new IllegalArgumentException("Specify which pages to extract.");
         }
         return selectPages(input, output, total -> {
             List<Integer> pages = CliUtil.resolvePages(ranges, total);
             if (pages.isEmpty()) {
-                throw new PdfToolException("Ninguna de las páginas indicadas existe (el documento tiene " + total + " páginas).");
+                throw new PdfToolException("None of the specified pages exist (the document has " + total + " pages).");
             }
             return pages;
         });
@@ -201,19 +201,19 @@ public class PdfOps {
     /** @return número de páginas que quedan */
     public static int deletePages(Path input, Path output, List<CliUtil.PageRange> ranges) throws IOException {
         if (ranges.isEmpty()) {
-            throw new IllegalArgumentException("Indica qué páginas quieres eliminar.");
+            throw new IllegalArgumentException("Specify which pages to delete.");
         }
         return selectPages(input, output, total -> {
             Set<Integer> remove = new HashSet<>(CliUtil.resolvePages(ranges, total));
             if (remove.isEmpty()) {
-                throw new PdfToolException("Ninguna de las páginas indicadas existe (el documento tiene " + total + " páginas).");
+                throw new PdfToolException("None of the specified pages exist (the document has " + total + " pages).");
             }
             List<Integer> keep = new ArrayList<>();
             for (int page = 1; page <= total; page++) {
                 if (!remove.contains(page)) keep.add(page);
             }
             if (keep.isEmpty()) {
-                throw new PdfToolException("No se pueden eliminar todas las páginas del documento.");
+                throw new PdfToolException("You cannot delete every page of the document.");
             }
             return keep;
         });
@@ -248,10 +248,10 @@ public class PdfOps {
     public static CompressResult compress(Path input, Path output, double jpegQuality, Integer maxDpi,
                                           boolean removeMetadata, ProgressListener progress) throws IOException {
         if (!(jpegQuality >= 0.1 && jpegQuality <= 1.0)) {
-            throw new IllegalArgumentException("La calidad JPEG debe estar entre 0,1 y 1.");
+            throw new IllegalArgumentException("JPEG quality must be between 0.1 and 1.");
         }
         if (maxDpi != null && maxDpi < 36) {
-            throw new IllegalArgumentException("El DPI máximo debe ser al menos 36.");
+            throw new IllegalArgumentException("Maximum DPI must be at least 36.");
         }
         long before = Files.size(input);
         ImageRecompressor.Result images;
@@ -275,7 +275,7 @@ public class PdfOps {
     /** @return número de páginas giradas */
     public static int rotate(Path input, Path output, int degrees, List<CliUtil.PageRange> ranges) throws IOException {
         if (degrees % 90 != 0) {
-            throw new IllegalArgumentException("El giro debe ser múltiplo de 90 grados (90, 180, 270…): " + degrees);
+            throw new IllegalArgumentException("Rotation must be a multiple of 90 degrees (90, 180, 270…): " + degrees);
         }
         List<CliUtil.PageRange> pages = ranges.isEmpty() ? List.of(CliUtil.PageRange.ALL) : ranges;
         try (SafeOutput out = SafeOutput.to(output)) {
@@ -291,8 +291,8 @@ public class PdfOps {
                     }
                 }
                 if (rotated == 0) {
-                    throw new PdfToolException("Ninguna de las páginas indicadas existe (el documento tiene "
-                            + number + " páginas).");
+                    throw new PdfToolException("None of the specified pages exist (the document has "
+                            + number + " pages).");
                 }
                 out.save(doc);
             }
@@ -309,10 +309,10 @@ public class PdfOps {
     public static void watermarkText(Path input, Path output, String text, float opacity, Color color,
                                      ProgressListener progress) throws IOException {
         if (text == null || text.isBlank()) {
-            throw new IllegalArgumentException("El texto de la marca de agua no puede estar vacío.");
+            throw new IllegalArgumentException("The watermark text cannot be empty.");
         }
         if (!(opacity > 0 && opacity <= 1)) {
-            throw new IllegalArgumentException("La opacidad debe estar entre 0 (sin incluir) y 1.");
+            throw new IllegalArgumentException("Opacity must be greater than 0 and at most 1.");
         }
         try (SafeOutput out = SafeOutput.to(output)) {
             try (PDDocument doc = Pdfs.open(input)) {
@@ -406,15 +406,15 @@ public class PdfOps {
 
     public static void printInfo(Path input) throws IOException {
         PdfInfo info = info(input);
-        System.out.println("Páginas: " + info.pages());
+        System.out.println("Pages: " + info.pages());
         DocumentMetadata md = info.metadata();
         Stream.of(
-                        Map.entry("Título", Optional.ofNullable(md.title())),
-                        Map.entry("Autor", Optional.ofNullable(md.author())),
-                        Map.entry("Asunto", Optional.ofNullable(md.subject())),
-                        Map.entry("Palabras clave", Optional.ofNullable(md.keywords())),
-                        Map.entry("Productor", Optional.ofNullable(info.producer())),
-                        Map.entry("Creador", Optional.ofNullable(info.creator()))
+                        Map.entry("Title", Optional.ofNullable(md.title())),
+                        Map.entry("Author", Optional.ofNullable(md.author())),
+                        Map.entry("Subject", Optional.ofNullable(md.subject())),
+                        Map.entry("Keywords", Optional.ofNullable(md.keywords())),
+                        Map.entry("Producer", Optional.ofNullable(info.producer())),
+                        Map.entry("Creator", Optional.ofNullable(info.creator()))
                 ).filter(e -> e.getValue().isPresent())
                 .forEach(e -> System.out.println(e.getKey() + ": " + e.getValue().get()));
     }
@@ -442,18 +442,18 @@ public class PdfOps {
     public static void encrypt(Path input, Path output, String ownerPwd, String userPwd, Set<PdfPermission> perms)
             throws IOException {
         if (ownerPwd == null || ownerPwd.isEmpty()) {
-            throw new IllegalArgumentException("Debes indicar la contraseña de propietario.");
+            throw new IllegalArgumentException("An owner password is required.");
         }
         String user = userPwd == null ? "" : userPwd;
         if (user.equals(ownerPwd)) {
-            throw new IllegalArgumentException("La contraseña de propietario debe ser distinta de la de apertura; "
-                    + "si no, cualquiera que abra el PDF tendría todos los permisos.");
+            throw new IllegalArgumentException("The owner password must differ from the open password; "
+                    + "otherwise anyone who opens the PDF would have full permissions.");
         }
         try (SafeOutput out = SafeOutput.to(output)) {
             try (PDDocument doc = Pdfs.open(input)) {
                 if (doc.isEncrypted()) {
-                    throw new PdfToolException("«" + Pdfs.name(input) + "» ya está protegido. "
-                            + "Quita primero la protección con «Quitar contraseña».");
+                    throw new PdfToolException("\"" + Pdfs.name(input) + "\" is already protected. "
+                            + "Remove the protection first with \"Remove password\".");
                 }
                 StandardProtectionPolicy policy =
                         new StandardProtectionPolicy(ownerPwd, user, PdfPermission.toAccessPermission(perms));
@@ -470,11 +470,11 @@ public class PdfOps {
         try (SafeOutput out = SafeOutput.to(output)) {
             try (PDDocument doc = Pdfs.open(input, password == null ? "" : password)) {
                 if (!doc.isEncrypted()) {
-                    throw new PdfToolException("«" + Pdfs.name(input) + "» no está protegido: no hay nada que quitar.");
+                    throw new PdfToolException("\"" + Pdfs.name(input) + "\" is not protected: there is nothing to remove.");
                 }
                 if (!doc.getCurrentAccessPermission().isOwnerPermission()) {
-                    throw new PdfToolException("Esa contraseña solo permite abrir «" + Pdfs.name(input)
-                            + "». Para quitar la protección hace falta la contraseña de propietario.");
+                    throw new PdfToolException("That password only opens \"" + Pdfs.name(input)
+                            + "\". Removing the protection requires the owner password.");
                 }
                 doc.setAllSecurityToBeRemoved(true);
                 out.save(doc);
@@ -489,10 +489,10 @@ public class PdfOps {
     public static int imagesToPdf(List<Path> images, Path output, ImagePageSize size, float marginPt,
                                   ProgressListener progress) throws IOException {
         if (images.isEmpty()) {
-            throw new PdfToolException("No hay imágenes que convertir.");
+            throw new PdfToolException("There are no images to convert.");
         }
         if (marginPt < 0) {
-            throw new IllegalArgumentException("El margen no puede ser negativo.");
+            throw new IllegalArgumentException("The margin cannot be negative.");
         }
         int pages = 0;
         try (SafeOutput out = SafeOutput.to(output)) {
@@ -514,10 +514,10 @@ public class PdfOps {
     public static List<Path> pdfToImages(Path input, Path outputDir, String baseName, ImageFormat format, int dpi,
                                          List<CliUtil.PageRange> ranges, ProgressListener progress) throws IOException {
         if (dpi < 36 || dpi > 600) {
-            throw new IllegalArgumentException("La resolución debe estar entre 36 y 600 ppp.");
+            throw new IllegalArgumentException("Resolution must be between 36 and 600 DPI.");
         }
         if (baseName == null || baseName.isBlank() || baseName.matches(".*[\\\\/:*?\"<>|].*")) {
-            throw new IllegalArgumentException("El nombre base de las imágenes no es válido: «" + baseName + "».");
+            throw new IllegalArgumentException("Invalid base name for the images: \"" + baseName + "\".");
         }
         List<SafeOutput> outputs = new ArrayList<>();
         try {
@@ -526,7 +526,7 @@ public class PdfOps {
                 int total = doc.getNumberOfPages();
                 List<Integer> pages = CliUtil.resolvePages(ranges, total);
                 if (pages.isEmpty()) {
-                    throw new PdfToolException("Ninguna de las páginas indicadas existe (el documento tiene " + total + " páginas).");
+                    throw new PdfToolException("None of the specified pages exist (the document has " + total + " pages).");
                 }
                 PDFRenderer renderer = new PDFRenderer(doc);
                 for (int i = 0; i < pages.size(); i++) {
