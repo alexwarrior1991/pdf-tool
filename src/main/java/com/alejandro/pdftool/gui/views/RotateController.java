@@ -80,7 +80,14 @@ public class RotateController extends OperationView {
         int degrees = degrees();
         runBarController.start("Rotando páginas…",
                 progress -> PdfOps.rotate(input, output, degrees, ranges),
-                rotated -> runBarController.success("Se han rotado " + rotated + (rotated == 1 ? " página" : " páginas")
-                        + ": «" + fileName(output) + "».", output, null));
+                rotated -> {
+                    runBarController.success("Se han rotado " + rotated + (rotated == 1 ? " página" : " páginas")
+                            + ": «" + fileName(output) + "».", output, null);
+                    if (sameFile(input, output)) { // se ha sobrescrito: mostrar el PDF tal y como ha quedado
+                        rangesField.clear();
+                        inputController.refresh();
+                        thumbnailsController.load(input);
+                    }
+                });
     }
 }

@@ -55,10 +55,12 @@ public class ImagesToPdfController extends OperationView {
             invalid("Añade al menos una imagen.");
             return;
         }
+        ImagePageSize size = pageSizeBox.getValue();
+        Integer marginMm = size == ImagePageSize.IMAGE ? Integer.valueOf(0) : spinnerValue(marginSpinner, "El margen");
+        if (marginMm == null) return;
         Path output = outputFile(outputController, "Indica dónde guardar el PDF.");
         if (output == null) return;
-        ImagePageSize size = pageSizeBox.getValue();
-        float margin = (float) (spinnerValue(marginSpinner) * MM_TO_PT);
+        float margin = (float) (marginMm * MM_TO_PT);
         runBarController.start("Creando el PDF…",
                 progress -> PdfOps.imagesToPdf(images, output, size, margin, progress),
                 pages -> runBarController.success("PDF creado con " + pages + (pages == 1 ? " página" : " páginas")

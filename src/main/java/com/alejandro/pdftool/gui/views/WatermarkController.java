@@ -91,6 +91,9 @@ public class WatermarkController extends OperationView {
                     PdfOps.watermarkText(input, output, text, opacity, color, progress);
                     return output;
                 },
-                result -> runBarController.success("Marca de agua añadida: «" + fileName(output) + "».", output, null));
+                result -> {
+                    runBarController.success("Marca de agua añadida: «" + fileName(output) + "».", output, null);
+                    if (sameFile(input, output)) inputController.refresh();
+                });
     }
 }

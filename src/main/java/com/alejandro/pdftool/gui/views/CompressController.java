@@ -101,14 +101,22 @@ public class CompressController extends OperationView {
     private void run() {
         Path input = inputFile(inputController, "Elige el PDF que quieres comprimir.");
         if (input == null) return;
+        Integer maxDpi = null;
+        if (limitDpiCheck.isSelected()) {
+            maxDpi = spinnerValue(dpiSpinner, "La resolución máxima");
+            if (maxDpi == null) return;
+        }
         Path output = outputFile(outputController, "Indica dónde guardar el PDF comprimido.");
         if (output == null) return;
         double quality = Math.round(qualitySlider.getValue()) / 100.0;
-        Integer maxDpi = limitDpiCheck.isSelected() ? spinnerValue(dpiSpinner) : null;
+        Integer dpiLimit = maxDpi;
         boolean removeMetadata = removeMetadataCheck.isSelected();
         runBarController.start("Comprimiendo imágenes…",
-                progress -> PdfOps.compress(input, output, quality, maxDpi, removeMetadata, progress),
-                result -> done(result, output));
+                progress -> PdfOps.compress(input, output, quality, dpiLimit, removeMetadata, progress),
+                result -> {
+                    done(result, output);
+                    if (sameFile(input, output)) inputController.refresh();
+                });
     }
 
     private void done(CompressResult result, Path output) {

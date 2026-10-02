@@ -7,11 +7,14 @@ import com.alejandro.pdftool.gui.components.RunBarController;
 import com.alejandro.pdftool.gui.util.OutputNames;
 import javafx.fxml.FXML;
 import javafx.scene.control.Spinner;
+import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.control.TextField;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * Base de los controladores de cada pantalla: acceso a la barra de ejecución y validaciones comunes. Los métodos
@@ -37,7 +40,7 @@ public abstract class OperationView {
     protected Path inputFile(FileFieldController field, String missingMessage) {
         Path path = field.getPath();
         if (path == null) {
-            invalid(missingMessage);
+            invalid(field.hasText() ? "La ruta «" + field.getText() + "» no es válida." : missingMessage);
             return null;
         }
         if (!Files.isRegularFile(path)) {
@@ -51,7 +54,7 @@ public abstract class OperationView {
     protected Path outputFile(FileFieldController field, String missingMessage) {
         Path path = field.getPath();
         if (path == null) {
-            invalid(missingMessage);
+            invalid(field.hasText() ? "La ruta «" + field.getText() + "» no es válida." : missingMessage);
             return null;
         }
         if (Files.isDirectory(path)) {
@@ -93,17 +96,43 @@ public abstract class OperationView {
         });
     }
 
-    /** Valor de un Spinner editable, aceptando lo que se haya escrito aunque no se haya pulsado Intro. */
-    protected static int spinnerValue(Spinner<Integer> spinner) {
+    /**
+     * Valor de un Spinner editable, tomando lo que se haya escrito aunque no se haya pulsado Intro. Si no es un
+     * número válido o está fuera de rango muestra el error y devuelve {@code null}.
+     */
+    protected Integer spinnerValue(Spinner<Integer> spinner, String what) {
+        String typed = spinner.getEditor().getText().strip();
+        int value;
         try {
-            Integer typed = spinner.getValueFactory().getConverter().fromString(spinner.getEditor().getText());
-            if (typed != null) {
-                spinner.getValueFactory().setValue(typed);
-            }
-        } catch (RuntimeException ignored) {
-            spinner.getEditor().setText(String.valueOf(spinner.getValue()));
+            value = Integer.parseInt(typed);
+        } catch (NumberFormatException e) {
+            invalid(what + " debe ser un número entero: «" + typed + "».");
+            spinner.requestFocus();
+            return null;
         }
-        return spinner.getValue();
+        if (spinner.getValueFactory() instanceof SpinnerValueFactory.IntegerSpinnerValueFactory factory
+                && (value < factory.getMin() || value > factory.getMax())) {
+            invalid(what + " debe estar entre " + factory.getMin() + " y " + factory.getMax() + ".");
+            spinner.requestFocus();
+            return null;
+        }
+        spinner.getValueFactory().setValue(value);
+        return value;
+    }
+
+    /** {@code true} si la salida es el mismo archivo que la entrada (se ha sobrescrito). */
+    protected static boolean sameFile(Path input, Path output) {
+        return input.toAbsolutePath().normalize().equals(output.toAbsolutePath().normalize());
+    }
+
+    /** Archivos de {@code folder} cuyo nombre encaja con la expresión regular (para avisar antes de reemplazarlos). */
+    protected static List<Path> existingFiles(Path folder, String nameRegex) {
+        if (!Files.isDirectory(folder)) return List.of();
+        try (Stream<Path> files = Files.list(folder)) {
+            return files.filter(f -> f.getFileName().toString().matches(nameRegex)).sorted().toList();
+        } catch (IOException e) {
+            return List.of();
+        }
     }
 
     protected static String fileName(Path path) {

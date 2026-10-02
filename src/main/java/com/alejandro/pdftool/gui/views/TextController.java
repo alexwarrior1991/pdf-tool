@@ -14,6 +14,7 @@ import javafx.scene.input.ClipboardContent;
 import javafx.stage.FileChooser;
 
 import java.io.File;
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 /** Pantalla «Extraer texto» ({@code text.fxml}). */
@@ -42,7 +43,7 @@ public class TextController extends OperationView {
         runBarController.setText("Extraer texto");
         runBarController.setOnRun(this::run);
         copyButton.disableProperty().bind(textArea.textProperty().isEmpty());
-        saveButton.disableProperty().bind(textArea.textProperty().isEmpty());
+        saveButton.disableProperty().bind(textArea.textProperty().isEmpty().or(context.busyProperty()));
     }
 
     private void run() {
@@ -81,16 +82,20 @@ public class TextController extends OperationView {
         FileChooser chooser = new FileChooser();
         chooser.setTitle("Guardar texto");
         chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Texto (*.txt)", "*.txt"));
+        chooser.setInitialDirectory(context.initialDirectory());
         if (source != null) {
             Path suggestion = OutputNames.besides(source, "texto", "txt");
-            chooser.setInitialDirectory(suggestion.getParent().toFile());
+            if (Files.isDirectory(suggestion.getParent())) { // la carpeta puede haber desaparecido (USB retirado…)
+                chooser.setInitialDirectory(suggestion.getParent().toFile());
+            }
             chooser.setInitialFileName(suggestion.getFileName().toString());
-        } else {
-            chooser.setInitialDirectory(context.initialDirectory());
         }
         File file = chooser.showSaveDialog(context.stage());
         if (file == null) return;
-        Path target = file.getName().contains(".") ? file.toPath() : file.toPath().resolveSibling(file.getName() + ".txt");
+        Path chosen = file.toPath();
+        Path target = OutputNames.withExtension(chosen, "txt");
+        // el diálogo ya preguntó por el nombre escrito; si se ha añadido «.txt» es otro archivo
+        if (!target.equals(chosen) && !runBarController.confirmOverwrite(target)) return;
         String text = textArea.getText();
         context.rememberDirectory(target);
         runBarController.start("Guardando…",

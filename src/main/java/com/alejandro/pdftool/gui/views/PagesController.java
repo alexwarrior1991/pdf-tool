@@ -77,13 +77,28 @@ public class PagesController extends OperationView {
         if (keep) {
             runBarController.start("Extrayendo páginas…",
                     progress -> PdfOps.extractPages(input, output, ranges),
-                    pages -> runBarController.success("Nuevo PDF con " + pages + (pages == 1 ? " página" : " páginas")
-                            + ": «" + fileName(output) + "».", output, null));
+                    pages -> {
+                        runBarController.success("Nuevo PDF con " + pages + (pages == 1 ? " página" : " páginas")
+                                + ": «" + fileName(output) + "».", output, null);
+                        reloadIfOverwritten(input, output);
+                    });
         } else {
             runBarController.start("Eliminando páginas…",
                     progress -> PdfOps.deletePages(input, output, ranges),
-                    pages -> runBarController.success("Páginas eliminadas. El nuevo PDF tiene " + pages
-                            + (pages == 1 ? " página" : " páginas") + ": «" + fileName(output) + "».", output, null));
+                    pages -> {
+                        runBarController.success("Páginas eliminadas. El nuevo PDF tiene " + pages
+                                + (pages == 1 ? " página" : " páginas") + ": «" + fileName(output) + "».", output, null);
+                        reloadIfOverwritten(input, output);
+                    });
+        }
+    }
+
+    /** Si se ha sobrescrito el original, las miniaturas y la selección anteriores ya no valen. */
+    private void reloadIfOverwritten(Path input, Path output) {
+        if (sameFile(input, output)) {
+            rangesField.clear();
+            inputController.refresh();
+            thumbnailsController.load(input);
         }
     }
 }

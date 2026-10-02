@@ -97,10 +97,16 @@ public class PageNumbersController extends OperationView {
         List<CliUtil.PageRange> ranges = allPages.isSelected() ? List.of()
                 : ranges(rangesField, true, "Indica qué páginas numerar, p. ej. 2-* para saltarte la portada.");
         if (ranges == null) return;
+        Integer size = spinnerValue(sizeSpinner, "El tamaño de letra");
+        if (size == null) return;
+        Integer margin = spinnerValue(marginSpinner, "El margen");
+        if (margin == null) return;
+        Integer start = spinnerValue(startSpinner, "El número inicial");
+        if (start == null) return;
         PageNumberOptions options;
         try {
-            options = new PageNumberOptions(format(), positionBox.getValue(), spinnerValue(sizeSpinner),
-                    (float) (spinnerValue(marginSpinner) * MM_TO_PT), spinnerValue(startSpinner), ranges);
+            options = new PageNumberOptions(format(), positionBox.getValue(), size, (float) (margin * MM_TO_PT),
+                    start, ranges);
         } catch (IllegalArgumentException e) {
             invalid(e.getMessage());
             return;
@@ -109,7 +115,10 @@ public class PageNumbersController extends OperationView {
         if (output == null) return;
         runBarController.start("Numerando páginas…",
                 progress -> PdfOps.addPageNumbers(input, output, options, progress),
-                numbered -> runBarController.success("Se han numerado " + numbered
-                        + (numbered == 1 ? " página" : " páginas") + ": «" + fileName(output) + "».", output, null));
+                numbered -> {
+                    runBarController.success("Se han numerado " + numbered
+                            + (numbered == 1 ? " página" : " páginas") + ": «" + fileName(output) + "».", output, null);
+                    if (sameFile(input, output)) inputController.refresh();
+                });
     }
 }

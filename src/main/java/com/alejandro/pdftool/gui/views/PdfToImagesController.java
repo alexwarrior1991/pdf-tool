@@ -16,6 +16,7 @@ import javafx.util.StringConverter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.regex.Pattern;
 
 /** Pantalla «PDF a imágenes» ({@code pdf-to-images.fxml}). */
 public class PdfToImagesController extends OperationView {
@@ -98,6 +99,12 @@ public class PdfToImagesController extends OperationView {
         }
         ImageFormat format = formatBox.getValue();
         int dpi = dpiBox.getValue();
+        int total = inputController.pageCountProperty().get();
+        List<Path> planned = total > 0
+                ? CliUtil.resolvePages(ranges, total).stream()
+                .map(page -> PdfOps.pageImagePath(folder, base, page, total, format)).toList()
+                : existingFiles(folder, Pattern.quote(base) + "_\\d{3,}\\." + format.extension());
+        if (!runBarController.confirmOverwrite(planned)) return;
         runBarController.start("Exportando páginas…",
                 progress -> PdfOps.pdfToImages(input, folder, base, format, dpi, ranges, progress),
                 files -> runBarController.success("Se han creado " + files.size()

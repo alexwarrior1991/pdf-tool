@@ -92,22 +92,10 @@ public class InfoController extends OperationView {
         }
         loadStatus.setText("Leyendo…");
         context.previews().submit(() -> {
+            PdfInfo info;
             try {
-                PdfInfo info = PdfOps.info(path);
-                Platform.runLater(() -> {
-                    if (current == generation) show(info);
-                });
-                Image cover = null;
-                if (info.pages() > 0) {
-                    try (PageRenderer renderer = PageRenderer.open(path)) {
-                        cover = FxImages.toFxImage(renderer.renderToWidth(0, 300));
-                    }
-                }
-                Image image = cover;
-                Platform.runLater(() -> {
-                    if (current == generation) coverView.setImage(image);
-                });
-            } catch (Exception e) {
+                info = PdfOps.info(path);
+            } catch (Exception | Error e) {
                 String message = ErrorMessages.describe(e);
                 Platform.runLater(() -> {
                     if (current == generation) {
@@ -115,6 +103,19 @@ public class InfoController extends OperationView {
                         loadStatus.setText(message);
                     }
                 });
+                return;
+            }
+            Platform.runLater(() -> {
+                if (current == generation) show(info);
+            });
+            if (info.pages() == 0) return;
+            try (PageRenderer renderer = PageRenderer.open(path)) {
+                Image cover = FxImages.toFxImage(renderer.renderToWidth(0, 300));
+                Platform.runLater(() -> {
+                    if (current == generation) coverView.setImage(cover);
+                });
+            } catch (Exception | Error ignored) {
+                // sin portada: los datos del documento siguen siendo válidos
             }
         });
     }
@@ -164,7 +165,8 @@ public class InfoController extends OperationView {
                                 + "metadatos XMP ilegibles que se han dejado como estaban: algunos programas podrían "
                                 + "seguir mostrando los datos antiguos.");
                     }
-                    if (output.toAbsolutePath().equals(input.toAbsolutePath())) {
+                    if (sameFile(input, output)) {
+                        inputController.refresh();
                         load(input);
                     }
                 });

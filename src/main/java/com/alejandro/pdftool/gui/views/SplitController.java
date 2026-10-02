@@ -14,7 +14,9 @@ import javafx.scene.control.TextField;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 /** Pantalla «Dividir PDF» ({@code split.fxml}). */
 public class SplitController extends OperationView {
@@ -83,18 +85,39 @@ public class SplitController extends OperationView {
             return;
         }
         Path prefix = folder.resolve(base);
+        int pages = inputController.pageCountProperty().get();
         if (byRanges.isSelected()) {
             List<CliUtil.PageRange> ranges = ranges(rangesField, true, "Escribe los rangos de páginas, p. ej. 1-3, 4-10, 11-*.");
             if (ranges == null) return;
+            int count = (int) ranges.stream().filter(r -> pages <= 0 || r.start() <= pages).count();
+            if (!runBarController.confirmOverwrite(plannedParts(prefix, base, folder, pages > 0 ? count : -1))) return;
             runBarController.start("Dividiendo…",
                     progress -> PdfOps.splitByRanges(input, prefix, ranges, progress),
                     parts -> done(parts, folder));
         } else {
-            int every = spinnerValue(everySpinner);
+            Integer every = spinnerValue(everySpinner, "«Páginas por parte»");
+            if (every == null) return;
+            int count = pages > 0 ? (pages + every - 1) / every : -1;
+            if (!runBarController.confirmOverwrite(plannedParts(prefix, base, folder, count))) return;
             runBarController.start("Dividiendo…",
                     progress -> PdfOps.splitEvery(input, prefix, every, progress),
                     parts -> done(parts, folder));
         }
+    }
+
+    /**
+     * Partes que se van a crear, para avisar si ya existen. Si aún no se sabe cuántas páginas tiene el PDF
+     * ({@code count < 0}), se avisa de todas las partes de ese nombre que haya en la carpeta.
+     */
+    private static List<Path> plannedParts(Path prefix, String base, Path folder, int count) {
+        if (count < 0) {
+            return existingFiles(folder, Pattern.quote(base) + "_part\\d{3,}\\.pdf");
+        }
+        List<Path> parts = new ArrayList<>();
+        for (int i = 1; i <= count; i++) {
+            parts.add(PdfOps.partPath(prefix, i));
+        }
+        return parts;
     }
 
     private void done(List<Path> parts, Path folder) {

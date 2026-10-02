@@ -13,13 +13,19 @@ import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageWriteParam;
 import javax.imageio.ImageWriter;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.ImageInputStream;
+import javax.imageio.stream.MemoryCacheImageInputStream;
 import javax.imageio.stream.MemoryCacheImageOutputStream;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 /** Conversión entre imágenes y páginas PDF. */
 final class ImageConversion {
@@ -42,9 +48,21 @@ final class ImageConversion {
         }
     }
 
-    /** Añade una página con la imagen, ajustada y centrada. */
-    static void addImagePage(PDDocument doc, Path file, ImagePageSize size, float margin) throws IOException {
-        LoadedImage loaded = load(doc, file);
+    /**
+     * Añade la imagen como página, ajustada y centrada. Un TIFF de varias páginas (p. ej. un escaneo o un fax)
+     * añade una página por cada una.
+     *
+     * @return páginas añadidas
+     */
+    static int addImagePages(PDDocument doc, Path file, ImagePageSize size, float margin) throws IOException {
+        List<LoadedImage> images = load(doc, file);
+        for (LoadedImage image : images) {
+            addPage(doc, image, size, margin);
+        }
+        return images.size();
+    }
+
+    private static void addPage(PDDocument doc, LoadedImage loaded, ImagePageSize size, float margin) throws IOException {
         float imageWidth = loaded.displayWidth();
         float imageHeight = loaded.displayHeight();
 
@@ -88,7 +106,7 @@ final class ImageConversion {
         };
     }
 
-    private static LoadedImage load(PDDocument doc, Path file) throws IOException {
+    private static List<LoadedImage> load(PDDocument doc, Path file) throws IOException {
         if (!Files.isRegularFile(file)) {
             throw new PdfToolException("No existe la imagen «" + file + "».");
         }
@@ -96,22 +114,45 @@ final class ImageConversion {
         if (isJpeg(bytes)) {
             try {
                 // El JPEG se incrusta tal cual: sin recomprimir ni perder calidad
-                return new LoadedImage(JPEGFactory.createFromByteArray(doc, bytes), ExifOrientation.rotationDegrees(bytes));
+                return List.of(new LoadedImage(JPEGFactory.createFromByteArray(doc, bytes),
+                        ExifOrientation.rotationDegrees(bytes)));
             } catch (IOException | RuntimeException e) {
                 // JPEG poco habitual (p. ej. 12 bits): se decodifica y se guarda sin pérdida
             }
         }
-        BufferedImage image;
-        try {
-            image = ImageIO.read(file.toFile());
+        List<LoadedImage> images = new ArrayList<>();
+        for (BufferedImage frame : decode(file, bytes)) {
+            images.add(new LoadedImage(LosslessFactory.createFromImage(doc, frame), 0));
+        }
+        return images;
+    }
+
+    /** Decodifica la imagen; de un TIFF devuelve todas sus páginas (de un GIF animado, solo el primer fotograma). */
+    private static List<BufferedImage> decode(Path file, byte[] bytes) throws PdfToolException {
+        try (ImageInputStream in = new MemoryCacheImageInputStream(new ByteArrayInputStream(bytes))) {
+            Iterator<ImageReader> readers = ImageIO.getImageReaders(in);
+            if (!readers.hasNext()) {
+                throw new PdfToolException("Formato de imagen no admitido: «" + Pdfs.name(file)
+                        + "». Usa JPG, PNG, GIF, BMP o TIFF.");
+            }
+            ImageReader reader = readers.next();
+            try {
+                reader.setInput(in);
+                boolean allPages = !"gif".equalsIgnoreCase(reader.getFormatName());
+                int count = allPages ? Math.max(1, reader.getNumImages(true)) : 1;
+                List<BufferedImage> frames = new ArrayList<>();
+                for (int i = 0; i < count; i++) {
+                    frames.add(reader.read(i));
+                }
+                return frames;
+            } finally {
+                reader.dispose();
+            }
+        } catch (PdfToolException e) {
+            throw e;
         } catch (IOException | RuntimeException e) {
             throw new PdfToolException("No se ha podido leer la imagen «" + Pdfs.name(file) + "»: " + e.getMessage(), e);
         }
-        if (image == null) {
-            throw new PdfToolException("Formato de imagen no admitido: «" + Pdfs.name(file)
-                    + "». Usa JPG, PNG, GIF, BMP o TIFF.");
-        }
-        return new LoadedImage(LosslessFactory.createFromImage(doc, image), 0);
     }
 
     private static boolean isJpeg(byte[] bytes) {

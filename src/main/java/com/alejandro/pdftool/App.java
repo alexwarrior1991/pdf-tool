@@ -290,7 +290,8 @@ public class App {
             throw new IllegalArgumentException("No se encontraron imágenes (JPG, PNG, GIF, BMP o TIFF).");
         }
         int pages = PdfOps.imagesToPdf(images, out, size, margin, ProgressListener.NONE);
-        System.out.println("Se han convertido " + pages + " imágenes en: " + out);
+        System.out.println("Se ha creado un PDF de " + pages + " páginas a partir de " + images.size()
+                + " imágenes: " + out);
     }
 
     static void runPdfToImages(String[] args) throws IOException {

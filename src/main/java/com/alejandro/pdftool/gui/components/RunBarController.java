@@ -93,8 +93,15 @@ public class RunBarController {
         onRun.run();
     }
 
-    /** Ejecuta el trabajo en segundo plano mostrando el progreso; al acabar llama a {@code onSuccess}. */
+    /**
+     * Ejecuta el trabajo en segundo plano mostrando el progreso; al acabar llama a {@code onSuccess}. Solo se
+     * ejecuta una operación a la vez en toda la aplicación.
+     */
     public <T> void start(String busyText, Work<T> work, Consumer<T> onSuccess) {
+        if (context.isBusy()) {
+            error("Espera a que termine la operación en curso.");
+            return;
+        }
         Task<T> task = new Task<>() {
             @Override
             protected T call() throws Exception {

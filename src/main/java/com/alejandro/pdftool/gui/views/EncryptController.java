@@ -95,6 +95,7 @@ public class EncryptController extends OperationView {
                     userPasswordRepeat.clear();
                     ownerPassword.clear();
                     ownerPasswordRepeat.clear();
+                    if (sameFile(input, output)) inputController.refresh();
                 });
     }
 }

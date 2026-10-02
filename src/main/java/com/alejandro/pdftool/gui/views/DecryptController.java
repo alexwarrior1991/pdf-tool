@@ -49,6 +49,7 @@ public class DecryptController extends OperationView {
                 result -> {
                     passwordField.clear();
                     runBarController.success("Protección eliminada: «" + fileName(output) + "».", output, null);
+                    if (sameFile(input, output)) inputController.refresh();
                 });
     }
 }

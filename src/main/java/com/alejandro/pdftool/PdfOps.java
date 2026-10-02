@@ -152,7 +152,7 @@ public class PdfOps {
                 }
                 for (int i = 0; i < parts.size(); i++) {
                     int[] part = parts.get(i);
-                    Path target = numbered(prefix, i + 1);
+                    Path target = partPath(prefix, i + 1);
                     if (target.toAbsolutePath().normalize().equals(original)) {
                         throw new PdfToolException("La parte «" + target + "» sobrescribiría el PDF original; usa otro prefijo.");
                     }
@@ -485,7 +485,7 @@ public class PdfOps {
 
     // IMÁGENES → PDF
 
-    /** @return número de páginas creadas (una por imagen) */
+    /** @return número de páginas creadas (una por imagen; un TIFF de varias páginas aporta todas) */
     public static int imagesToPdf(List<Path> images, Path output, ImagePageSize size, float marginPt,
                                   ProgressListener progress) throws IOException {
         if (images.isEmpty()) {
@@ -494,17 +494,18 @@ public class PdfOps {
         if (marginPt < 0) {
             throw new IllegalArgumentException("El margen no puede ser negativo.");
         }
+        int pages = 0;
         try (SafeOutput out = SafeOutput.to(output)) {
             try (PDDocument doc = new PDDocument()) {
                 for (int i = 0; i < images.size(); i++) {
-                    ImageConversion.addImagePage(doc, images.get(i), size, marginPt);
+                    pages += ImageConversion.addImagePages(doc, images.get(i), size, marginPt);
                     progress.update(i + 1, images.size());
                 }
                 out.save(doc);
             }
             out.commit();
         }
-        return images.size();
+        return pages;
     }
 
     // PDF → IMÁGENES
@@ -528,12 +529,10 @@ public class PdfOps {
                     throw new PdfToolException("Ninguna de las páginas indicadas existe (el documento tiene " + total + " páginas).");
                 }
                 PDFRenderer renderer = new PDFRenderer(doc);
-                String pattern = "%s_%0" + Math.max(3, String.valueOf(total).length()) + "d.%s";
                 for (int i = 0; i < pages.size(); i++) {
                     int page = pages.get(i);
                     BufferedImage image = renderer.renderImageWithDPI(page - 1, dpi, ImageType.RGB);
-                    SafeOutput out = SafeOutput.to(outputDir.resolve(
-                            String.format(Locale.ROOT, pattern, baseName.strip(), page, format.extension())));
+                    SafeOutput out = SafeOutput.to(pageImagePath(outputDir, baseName, page, total, format));
                     outputs.add(out);
                     out.write(os -> ImageConversion.writeImage(image, format, os));
                     progress.update(i + 1, pages.size());
@@ -546,12 +545,22 @@ public class PdfOps {
         }
     }
 
-    // Helpers
-    private static Path numbered(Path prefix, int idx) {
+    // Nombres de salida
+
+    /** Archivo de la parte {@code index} (1-based) al dividir: {@code <prefijo>_partNNN.pdf}. */
+    public static Path partPath(Path prefix, int index) {
         String base = prefix.getFileName().toString();
         Path parent = Optional.ofNullable(prefix.getParent()).orElse(Path.of("."));
-        return parent.resolve(String.format(Locale.ROOT, "%s_part%03d.pdf", base, idx));
+        return parent.resolve(String.format(Locale.ROOT, "%s_part%03d.pdf", base, index));
     }
+
+    /** Imagen de la página {@code page} al exportar: {@code <base>_NNN.<ext>} (más cifras si hay más de 999 páginas). */
+    public static Path pageImagePath(Path outputDir, String baseName, int page, int totalPages, ImageFormat format) {
+        String pattern = "%s_%0" + Math.max(3, String.valueOf(totalPages).length()) + "d.%s";
+        return outputDir.resolve(String.format(Locale.ROOT, pattern, baseName.strip(), page, format.extension()));
+    }
+
+    // Helpers
 
     private static String blankToNull(String value) {
         return value == null || value.isBlank() ? null : value.strip();

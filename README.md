@@ -189,8 +189,8 @@ java -jar .\target\pdf-tool-1.0-SNAPSHOT.jar --help
 
 #### images2pdf / pdf2images — convertir entre imágenes y PDF
 - `images2pdf -o <out.pdf> <img1> <carpeta> [...] [-size a4|letter|image] [-margin 10]`
-  - Una imagen por página, ajustada y centrada. Los JPG se incluyen sin recomprimir, y las fotos del móvil se giran
-    según su orientación EXIF. Margen en milímetros.
+  - Una imagen por página, ajustada y centrada; un TIFF de varias páginas (escáner, fax) aporta todas. Los JPG se
+    incluyen sin recomprimir, y las fotos del móvil se giran según su orientación EXIF. Margen en milímetros.
 - `pdf2images <in.pdf> -o <carpeta> [-format png|jpg] [-dpi 150] [-pages "1-3"] [-name <base>]`
   - Crea `<base>_001.png`, `<base>_002.png`… (el número es el de la página).
 - Ejemplos:

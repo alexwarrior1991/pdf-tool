@@ -64,6 +64,9 @@ final class SafeOutput implements AutoCloseable {
     void write(Writer writer) throws IOException {
         try (OutputStream out = new BufferedOutputStream(
                 Files.newOutputStream(temp, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE))) {
+            // si la aplicación se cierra a mitad de la operación, close() no llega a ejecutarse: que no queden
+            // temporales (tras commit() el temporal ya no existe y esto no hace nada)
+            temp.toFile().deleteOnExit();
             writer.writeTo(out);
         }
     }

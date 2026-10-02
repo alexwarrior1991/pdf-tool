@@ -6,6 +6,7 @@ import com.alejandro.pdftool.InputFiles;
 import com.alejandro.pdftool.PdfInfo;
 import com.alejandro.pdftool.PdfOps;
 import com.alejandro.pdftool.gui.AppContext;
+import com.alejandro.pdftool.gui.util.OutputNames;
 import javafx.application.Platform;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
@@ -28,7 +29,6 @@ import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Locale;
 import java.util.Optional;
 
 /**
@@ -98,6 +98,21 @@ public class FileFieldController {
     public void setPath(Path value) {
         setText(value == null ? "" : value.toString());
         userChosen = value != null;
+        confirmedByDialog = false;
+    }
+
+    /** {@code true} si el campo tiene texto (aunque no sea una ruta válida). */
+    public boolean hasText() {
+        return !pathField.getText().isBlank();
+    }
+
+    public String getText() {
+        return pathField.getText().strip();
+    }
+
+    /** Vuelve a leer el resumen (páginas y tamaño), p. ej. después de sobrescribir el archivo. */
+    public void refresh() {
+        refreshSummary(getPath());
     }
 
     /** Propone una ruta si el usuario todavía no ha elegido ninguna. */
@@ -140,13 +155,17 @@ public class FileFieldController {
                 if (getPath() != null && getPath().getFileName() != null) {
                     chooser.setInitialFileName(getPath().getFileName().toString());
                 }
-                yield withExtension(toPath(chooser.showSaveDialog(context.stage())), extension);
+                yield toPath(chooser.showSaveDialog(context.stage()));
             }
         };
         if (chosen != null) {
-            setPath(chosen);
-            confirmedByDialog = mode == Mode.SAVE_PDF || mode == Mode.SAVE_TEXT;
-            context.rememberDirectory(chosen);
+            boolean saving = mode == Mode.SAVE_PDF || mode == Mode.SAVE_TEXT;
+            Path target = saving ? OutputNames.withExtension(chosen, mode == Mode.SAVE_PDF ? "pdf" : "txt") : chosen;
+            setPath(target);
+            // El diálogo ya preguntó por el nombre que se escribió; si hemos añadido la extensión (Linux no lo
+            // hace solo) es otro archivo y se preguntará antes de reemplazarlo.
+            confirmedByDialog = saving && target.equals(chosen);
+            context.rememberDirectory(target);
         }
     }
 
@@ -215,7 +234,7 @@ public class FileFieldController {
                 text = info.pages() + (info.pages() == 1 ? " página" : " páginas") + " · " + Formats.bytes(info.fileSize())
                         + (info.encrypted() ? " · con restricciones de seguridad" : "");
                 warning = info.encrypted();
-            } catch (Exception e) {
+            } catch (Exception | Error e) {
                 text = ErrorMessages.describe(e);
                 warning = true;
             }
@@ -256,8 +275,12 @@ public class FileFieldController {
 
     private static Path parse(String text) {
         if (text == null || text.isBlank()) return null;
+        String value = text.strip();
+        if (value.length() >= 2 && value.startsWith("\"") && value.endsWith("\"")) {
+            value = value.substring(1, value.length() - 1).strip();
+        }
         try {
-            return Path.of(text.strip());
+            return value.isEmpty() ? null : Path.of(value);
         } catch (InvalidPathException e) {
             return null;
         }
@@ -267,9 +290,4 @@ public class FileFieldController {
         return file == null ? null : file.toPath();
     }
 
-    private static Path withExtension(Path file, String extension) {
-        if (file == null) return null;
-        String name = file.getFileName().toString();
-        return name.toLowerCase(Locale.ROOT).endsWith("." + extension) ? file : file.resolveSibling(name + "." + extension);
-    }
 }

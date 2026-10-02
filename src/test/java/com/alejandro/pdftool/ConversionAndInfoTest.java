@@ -11,7 +11,10 @@ import org.apache.xmpbox.xml.XmpSerializer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
+import javax.imageio.ImageWriter;
+import javax.imageio.stream.ImageOutputStream;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
@@ -81,6 +84,35 @@ class ConversionAndInfoTest {
         Path notAnImage = Files.writeString(dir.resolve("nota.png"), "texto");
         assertThrows(PdfToolException.class,
                 () -> PdfOps.imagesToPdf(List.of(notAnImage), dir.resolve("x.pdf"), ImagePageSize.A4, 0, ProgressListener.NONE));
+    }
+
+    @Test
+    void everyPageOfAMultiPageTiffBecomesAPage() throws Exception {
+        Path tiff = dir.resolve("escaneo.tif");
+        ImageWriter writer = ImageIO.getImageWritersByFormatName("tiff").next();
+        try (ImageOutputStream out = ImageIO.createImageOutputStream(tiff.toFile())) {
+            writer.setOutput(out);
+            writer.prepareWriteSequence(null);
+            for (int i = 0; i < 3; i++) {
+                writer.writeToSequence(new IIOImage(TestPdfs.photo(200 + i * 50, 300), null, null), null);
+            }
+            writer.endWriteSequence();
+        } finally {
+            writer.dispose();
+        }
+        Path png = dir.resolve("otra.png");
+        ImageIO.write(TestPdfs.photo(100, 100), "png", png.toFile());
+        Path out = dir.resolve("escaneo.pdf");
+
+        assertEquals(4, PdfOps.imagesToPdf(List.of(tiff, png), out, ImagePageSize.A4, 0, ProgressListener.NONE));
+        assertEquals(4, TestPdfs.pageCount(out));
+    }
+
+    @Test
+    void outputNamesAreSharedWithTheGui() {
+        assertEquals(dir.resolve("informe_part007.pdf"), PdfOps.partPath(dir.resolve("informe"), 7));
+        assertEquals(dir.resolve("informe_012.png"), PdfOps.pageImagePath(dir, "informe", 12, 300, ImageFormat.PNG));
+        assertEquals(dir.resolve("informe_0012.jpg"), PdfOps.pageImagePath(dir, "informe", 12, 1500, ImageFormat.JPG));
     }
 
     @Test
