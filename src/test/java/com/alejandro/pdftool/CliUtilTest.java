@@ -29,9 +29,9 @@ class CliUtilTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"5-", "1-2-3", "-3", "0", "5-3", "abc", "1;2", "99999999999"})
-    void rejectsInvalidRangesWithSpanishMessage(String spec) {
+    void rejectsInvalidRangesWithClearMessage(String spec) {
         IllegalArgumentException e = assertThrows(IllegalArgumentException.class, () -> CliUtil.parseRanges(spec));
-        assertTrue(e.getMessage().matches(".*(Rango|páginas|Número).*"), e.getMessage());
+        assertTrue(e.getMessage().matches(".*([Rr]ange|[Pp]age).*"), e.getMessage());
     }
 
     @Test

@@ -13,8 +13,8 @@ import java.util.Optional;
 /** Diálogos con los botones siempre en español, sea cual sea el idioma del sistema. */
 public final class Dialogs {
 
-    public static final ButtonType CANCEL = new ButtonType("Cancelar", ButtonBar.ButtonData.CANCEL_CLOSE);
-    public static final ButtonType CLOSE = new ButtonType("Cerrar", ButtonBar.ButtonData.CANCEL_CLOSE);
+    public static final ButtonType CANCEL = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+    public static final ButtonType CLOSE = new ButtonType("Close", ButtonBar.ButtonData.CANCEL_CLOSE);
 
     private Dialogs() {
     }
@@ -40,7 +40,7 @@ public final class Dialogs {
         area.setPrefSize(720, 320);
         Alert alert = new Alert(Alert.AlertType.ERROR, null, CLOSE);
         alert.initOwner(owner);
-        alert.setTitle("Detalles del error");
+        alert.setTitle("Error details");
         alert.setHeaderText(message);
         alert.getDialogPane().setContent(area);
         alert.setResizable(true);

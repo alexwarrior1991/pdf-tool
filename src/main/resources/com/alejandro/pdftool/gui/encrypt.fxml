@@ -12,42 +12,42 @@
             xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.alejandro.pdftool.gui.views.EncryptController">
     <VBox spacing="16" styleClass="page">
         <VBox spacing="4">
-            <Label styleClass="view-title" text="Proteger con contraseña"/>
+            <Label styleClass="view-title" text="Protect with password"/>
             <Label styleClass="view-description" wrapText="true"
-                   text="Cifra el PDF con AES-256 y decide qué puede hacer quien lo abra. El original no se modifica."/>
+                   text="Encrypt the PDF with AES-256 and choose what people who open it can do. The original is not changed."/>
         </VBox>
         <VBox spacing="10" styleClass="section">
             <Label styleClass="section-label" text="1. PDF"/>
             <fx:include fx:id="input" source="file-field.fxml"/>
         </VBox>
         <VBox spacing="10" styleClass="section">
-            <Label styleClass="section-label" text="2. Contraseñas"/>
+            <Label styleClass="section-label" text="2. Passwords"/>
             <GridPane hgap="12" vgap="10">
                 <columnConstraints>
                     <ColumnConstraints minWidth="250"/>
                     <ColumnConstraints minWidth="200" prefWidth="260"/>
                     <ColumnConstraints minWidth="200" prefWidth="260"/>
                 </columnConstraints>
-                <Label styleClass="field-label" text="Para abrir el documento (opcional):" GridPane.rowIndex="0"/>
-                <PasswordField fx:id="userPassword" promptText="Contraseña" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
-                <PasswordField fx:id="userPasswordRepeat" promptText="Repítela" GridPane.columnIndex="2"
+                <Label styleClass="field-label" text="To open the document (optional):" GridPane.rowIndex="0"/>
+                <PasswordField fx:id="userPassword" promptText="Password" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                <PasswordField fx:id="userPasswordRepeat" promptText="Repeat it" GridPane.columnIndex="2"
                                GridPane.rowIndex="0"/>
-                <Label styleClass="field-label" text="De propietario (obligatoria):" GridPane.rowIndex="1"/>
-                <PasswordField fx:id="ownerPassword" promptText="Contraseña" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
-                <PasswordField fx:id="ownerPasswordRepeat" promptText="Repítela" GridPane.columnIndex="2"
+                <Label styleClass="field-label" text="Owner (required):" GridPane.rowIndex="1"/>
+                <PasswordField fx:id="ownerPassword" promptText="Password" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+                <PasswordField fx:id="ownerPasswordRepeat" promptText="Repeat it" GridPane.columnIndex="2"
                                GridPane.rowIndex="1"/>
             </GridPane>
             <Label styleClass="field-hint" wrapText="true"
-                   text="Si pones contraseña de apertura, se pedirá para ver el PDF. La de propietario permite cambiar los permisos o quitar la protección: guárdala en un lugar seguro."/>
+                   text="If you set an open password, it will be required to view the PDF. The owner password lets you change permissions or remove protection: keep it somewhere safe."/>
         </VBox>
         <VBox spacing="10" styleClass="section">
-            <Label styleClass="section-label" text="3. Qué se permite a quien abra el PDF"/>
+            <Label styleClass="section-label" text="3. What people opening the PDF can do"/>
             <FlowPane fx:id="permissionsPane" hgap="16" vgap="10"/>
-            <Label styleClass="field-hint" text="Lo que no marques quedará bloqueado (la lectura para personas con discapacidad siempre se permite)."
+            <Label styleClass="field-hint" text="Anything you leave unchecked will be blocked (accessibility reading is always allowed)."
                    wrapText="true"/>
         </VBox>
         <VBox spacing="10" styleClass="section">
-            <Label styleClass="section-label" text="4. Dónde guardar el PDF protegido"/>
+            <Label styleClass="section-label" text="4. Where to save the protected PDF"/>
             <fx:include fx:id="output" source="file-field.fxml"/>
         </VBox>
         <fx:include fx:id="runBar" source="run-bar.fxml"/>

@@ -17,41 +17,41 @@
             <ToggleGroup fx:id="mode"/>
         </fx:define>
         <VBox spacing="4">
-            <Label styleClass="view-title" text="Dividir PDF"/>
+            <Label styleClass="view-title" text="Split PDF"/>
             <Label styleClass="view-description" wrapText="true"
-                   text="Separa un PDF en varios archivos: por rangos de páginas o en partes del mismo tamaño."/>
+                   text="Split a PDF into several files: by page ranges or into equal-sized parts."/>
         </VBox>
         <VBox spacing="10" styleClass="section">
-            <Label styleClass="section-label" text="1. PDF que quieres dividir"/>
+            <Label styleClass="section-label" text="1. PDF to split"/>
             <fx:include fx:id="input" source="file-field.fxml"/>
             <fx:include fx:id="thumbnails" source="thumbnails.fxml"/>
         </VBox>
         <VBox spacing="10" styleClass="section">
-            <Label styleClass="section-label" text="2. Cómo dividirlo"/>
-            <RadioButton fx:id="byRanges" mnemonicParsing="false" selected="true" text="Por rangos de páginas (cada rango será un archivo)"
+            <Label styleClass="section-label" text="2. How to split it"/>
+            <RadioButton fx:id="byRanges" mnemonicParsing="false" selected="true" text="By page ranges (each range becomes a file)"
                          toggleGroup="$mode"/>
             <VBox spacing="4" style="-fx-padding: 0 0 0 26;">
-                <TextField fx:id="rangesField" promptText="Por ejemplo: 1-3, 4-10, 11-*"/>
-                <Label styleClass="field-hint" text="Separa los rangos con comas. El * significa «hasta el final»."/>
+                <TextField fx:id="rangesField" promptText="For example: 1-3, 4-10, 11-*"/>
+                <Label styleClass="field-hint" text="Separate ranges with commas. * means “to the end”."/>
             </VBox>
-            <RadioButton fx:id="byCount" mnemonicParsing="false" text="En partes de un número fijo de páginas"
+            <RadioButton fx:id="byCount" mnemonicParsing="false" text="Into parts with a fixed number of pages"
                          toggleGroup="$mode"/>
             <HBox alignment="CENTER_LEFT" spacing="8" style="-fx-padding: 0 0 0 26;">
-                <Label styleClass="field-label" text="Páginas por parte:"/>
+                <Label styleClass="field-label" text="Pages per part:"/>
                 <Spinner fx:id="everySpinner" editable="true" prefWidth="100">
                     <valueFactory>
                         <SpinnerValueFactory.IntegerSpinnerValueFactory initialValue="1" max="100000" min="1"/>
                     </valueFactory>
                 </Spinner>
-                <Label styleClass="field-hint" text="(1 = un archivo por página)"/>
+                <Label styleClass="field-hint" text="(1 = one file per page)"/>
             </HBox>
         </VBox>
         <VBox spacing="10" styleClass="section">
-            <Label styleClass="section-label" text="3. Dónde guardar las partes"/>
+            <Label styleClass="section-label" text="3. Where to save the parts"/>
             <fx:include fx:id="folder" source="file-field.fxml"/>
             <HBox alignment="CENTER_LEFT" spacing="8">
-                <Label styleClass="field-label" text="Nombre base:"/>
-                <TextField fx:id="baseNameField" prefColumnCount="24" promptText="informe" HBox.hgrow="ALWAYS"/>
+                <Label styleClass="field-label" text="Base name:"/>
+                <TextField fx:id="baseNameField" prefColumnCount="24" promptText="report" HBox.hgrow="ALWAYS"/>
             </HBox>
             <Label fx:id="exampleLabel" styleClass="field-hint"/>
         </VBox>

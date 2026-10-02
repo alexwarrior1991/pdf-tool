@@ -15,32 +15,32 @@
             <ToggleGroup fx:id="mode"/>
         </fx:define>
         <VBox spacing="4">
-            <Label styleClass="view-title" text="Extraer o eliminar páginas"/>
+            <Label styleClass="view-title" text="Extract or delete pages"/>
             <Label styleClass="view-description" wrapText="true"
-                   text="Crea un PDF nuevo solo con las páginas que necesitas (en el orden que escribas) o sin las que sobran. El original no se modifica."/>
+                   text="Create a new PDF with only the pages you need (in the order you type) or without the ones you don’t. The original is not changed."/>
         </VBox>
         <VBox spacing="10" styleClass="section">
             <Label styleClass="section-label" text="1. PDF"/>
             <fx:include fx:id="input" source="file-field.fxml"/>
         </VBox>
         <VBox spacing="10" styleClass="section">
-            <Label styleClass="section-label" text="2. Elige las páginas"/>
+            <Label styleClass="section-label" text="2. Choose the pages"/>
             <HBox spacing="20">
                 <RadioButton fx:id="keepMode" mnemonicParsing="false" selected="true"
-                             text="Conservar solo estas páginas" toggleGroup="$mode"/>
-                <RadioButton fx:id="deleteMode" mnemonicParsing="false" text="Eliminar estas páginas"
+                             text="Keep only these pages" toggleGroup="$mode"/>
+                <RadioButton fx:id="deleteMode" mnemonicParsing="false" text="Delete these pages"
                              toggleGroup="$mode"/>
             </HBox>
-            <TextField fx:id="rangesField" promptText="Haz clic en las miniaturas o escribe, p. ej.: 1-3, 7"/>
+            <TextField fx:id="rangesField" promptText="Click the thumbnails or type, e.g. 1-3, 7"/>
             <Label styleClass="field-hint" wrapText="true"
-                   text="Para extraer en otro orden escríbelo así: 5, 1-3 (la página 5 irá primero)."/>
+                   text="To extract in a different order, type it like this: 5, 1-3 (page 5 goes first)."/>
             <fx:include fx:id="thumbnails" source="thumbnails.fxml"/>
         </VBox>
         <VBox spacing="10" styleClass="section">
-            <Label styleClass="section-label" text="3. Dónde guardar el resultado"/>
+            <Label styleClass="section-label" text="3. Where to save the result"/>
             <fx:include fx:id="output" source="file-field.fxml"/>
             <Label styleClass="field-hint" wrapText="true"
-                   text="Nota: los marcadores (índice) y los formularios rellenables del original no se conservan."/>
+                   text="Note: bookmarks (table of contents) and fillable forms from the original are not kept."/>
         </VBox>
         <fx:include fx:id="runBar" source="run-bar.fxml"/>
     </VBox>

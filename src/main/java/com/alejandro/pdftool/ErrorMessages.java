@@ -26,36 +26,36 @@ public final class ErrorMessages {
             return e.getMessage();
         }
         if (e instanceof InvalidPasswordException) {
-            return "El PDF está protegido con contraseña o la contraseña no es correcta.";
+            return "The PDF is password-protected or the password is incorrect.";
         }
         if (e instanceof NoSuchFileException nsf) {
-            return "No se encuentra el archivo «" + nsf.getFile() + "».";
+            return "File not found: \"" + nsf.getFile() + "\".";
         }
         if (e instanceof FileNotFoundException) {
-            return "No se encuentra el archivo: " + e.getMessage();
+            return "File not found: " + e.getMessage();
         }
         if (e instanceof AccessDeniedException ade) {
             String file = ade.getOtherFile() != null ? ade.getOtherFile() : ade.getFile();
-            return "No se puede escribir en «" + file + "». ¿Está abierto en otro programa o es de solo lectura?";
+            return "Cannot write to \"" + file + "\". Is it open in another program or read-only?";
         }
         if (e instanceof FileSystemException fse) {
             String file = fse.getOtherFile() != null ? fse.getOtherFile() : fse.getFile();
             String reason = fse.getReason() != null ? ": " + fse.getReason() : "";
-            return "No se puede acceder a «" + file + "»" + reason + ". ¿Está abierto en otro programa?";
+            return "Cannot access \"" + file + "\"" + reason + ". Is it open in another program?";
         }
         if (e instanceof NumberFormatException) {
-            return "Número no válido (" + e.getMessage() + ").";
+            return "Invalid number (" + e.getMessage() + ").";
         }
         if (e instanceof IllegalArgumentException) {
             return e.getMessage();
         }
         if (e instanceof OutOfMemoryError) {
-            return "No hay memoria suficiente para procesar el documento.";
+            return "Not enough memory to process the document.";
         }
         if (e instanceof IOException) {
-            return "No se ha podido procesar el archivo (¿está dañado o no es un PDF?): " + e.getMessage();
+            return "Could not process the file (is it damaged or not a PDF?): " + e.getMessage();
         }
-        return "Error inesperado: " + e;
+        return "Unexpected error: " + e;
     }
 
     /** Quita los envoltorios habituales para llegar a la causa real. */

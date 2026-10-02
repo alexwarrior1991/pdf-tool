@@ -7,13 +7,13 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<!-- Botón principal de cada pantalla, progreso de la operación y aviso con el resultado. -->
+<!-- Main action button for each screen, operation progress and result notice. -->
 <VBox fx:id="root" spacing="12" styleClass="run-bar" stylesheets="@app.css"
       xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.alejandro.pdftool.gui.components.RunBarController">
     <HBox alignment="CENTER_LEFT" spacing="14">
         <Button fx:id="runButton" defaultButton="true" mnemonicParsing="false" onAction="#run" styleClass="primary"
-                text="Ejecutar"/>
+                text="Run"/>
         <ProgressBar fx:id="progressBar" prefWidth="240" progress="-1"/>
         <Label fx:id="statusLabel" styleClass="status-text"/>
     </HBox>
@@ -21,9 +21,9 @@
         <Label fx:id="bannerIcon" minWidth="18" styleClass="banner-icon"/>
         <Label fx:id="bannerText" maxWidth="Infinity" styleClass="banner-text" wrapText="true" HBox.hgrow="ALWAYS"/>
         <Button fx:id="openFileButton" minWidth="-Infinity" mnemonicParsing="false" onAction="#openFile"
-                text="Abrir archivo"/>
+                text="Open file"/>
         <Button fx:id="openFolderButton" minWidth="-Infinity" mnemonicParsing="false" onAction="#openFolder"
-                text="Abrir carpeta"/>
-        <Hyperlink fx:id="detailsLink" minWidth="-Infinity" onAction="#showDetails" text="Detalles"/>
+                text="Open folder"/>
+        <Hyperlink fx:id="detailsLink" minWidth="-Infinity" onAction="#showDetails" text="Details"/>
     </HBox>
 </VBox>

@@ -10,12 +10,12 @@ import java.util.stream.Collectors;
 
 /** Permisos que se pueden conceder al proteger un PDF. */
 public enum PdfPermission {
-    PRINT("print", "Imprimir"),
-    COPY("copy", "Copiar texto e imágenes"),
-    MODIFY("modify", "Modificar el contenido"),
-    ANNOTATE("annotate", "Añadir comentarios y anotaciones"),
-    FILL("fill", "Rellenar formularios"),
-    ASSEMBLE("assemble", "Insertar, girar o eliminar páginas");
+    PRINT("print", "Print"),
+    COPY("copy", "Copy text and images"),
+    MODIFY("modify", "Modify content"),
+    ANNOTATE("annotate", "Add comments and annotations"),
+    FILL("fill", "Fill in forms"),
+    ASSEMBLE("assemble", "Insert, rotate or delete pages");
 
     private final String cliName;
     private final String label;
@@ -38,7 +38,7 @@ public enum PdfPermission {
         return Arrays.stream(values())
                 .filter(p -> p.cliName.equals(wanted))
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Permiso desconocido «" + name + "». Usa: "
+                .orElseThrow(() -> new IllegalArgumentException("Unknown permission \"" + name + "\". Use: "
                         + Arrays.stream(values()).map(PdfPermission::cliName).collect(Collectors.joining(", "))));
     }
 

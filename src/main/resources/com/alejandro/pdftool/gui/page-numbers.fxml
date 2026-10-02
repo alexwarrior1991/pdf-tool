@@ -20,63 +20,63 @@
             <ToggleGroup fx:id="scope"/>
         </fx:define>
         <VBox spacing="4">
-            <Label styleClass="view-title" text="Numerar páginas"/>
+            <Label styleClass="view-title" text="Page numbers"/>
             <Label styleClass="view-description" wrapText="true"
-                   text="Escribe el número de página en el pie o en la cabecera. Se coloca bien aunque haya páginas giradas."/>
+                   text="Add the page number to the footer or header. It is placed correctly even on rotated pages."/>
         </VBox>
         <VBox spacing="10" styleClass="section">
             <Label styleClass="section-label" text="1. PDF"/>
             <fx:include fx:id="input" source="file-field.fxml"/>
         </VBox>
         <VBox spacing="10" styleClass="section">
-            <Label styleClass="section-label" text="2. Formato y posición"/>
+            <Label styleClass="section-label" text="2. Format and position"/>
             <GridPane hgap="12" vgap="10">
                 <columnConstraints>
                     <ColumnConstraints minWidth="150"/>
                     <ColumnConstraints hgrow="ALWAYS"/>
                 </columnConstraints>
-                <Label styleClass="field-label" text="Texto:" GridPane.rowIndex="0"/>
+                <Label styleClass="field-label" text="Text:" GridPane.rowIndex="0"/>
                 <VBox spacing="3" GridPane.columnIndex="1" GridPane.rowIndex="0">
                     <ComboBox fx:id="formatBox" editable="true" prefWidth="300"/>
-                    <Label styleClass="field-hint" text="{n} = número de página · {total} = último número"/>
+                    <Label styleClass="field-hint" text="{n} = page number · {total} = last number"/>
                 </VBox>
-                <Label styleClass="field-label" text="Posición:" GridPane.rowIndex="1"/>
+                <Label styleClass="field-label" text="Position:" GridPane.rowIndex="1"/>
                 <ComboBox fx:id="positionBox" prefWidth="300" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
-                <Label styleClass="field-label" text="Tamaño de letra:" GridPane.rowIndex="2"/>
+                <Label styleClass="field-label" text="Font size:" GridPane.rowIndex="2"/>
                 <HBox alignment="CENTER_LEFT" spacing="8" GridPane.columnIndex="1" GridPane.rowIndex="2">
                     <Spinner fx:id="sizeSpinner" editable="true" prefWidth="90">
                         <valueFactory>
                             <SpinnerValueFactory.IntegerSpinnerValueFactory initialValue="10" max="48" min="6"/>
                         </valueFactory>
                     </Spinner>
-                    <Label styleClass="field-hint" text="puntos"/>
-                    <Label styleClass="field-label" text="Margen:" style="-fx-padding: 0 0 0 18;"/>
+                    <Label styleClass="field-hint" text="pt"/>
+                    <Label styleClass="field-label" text="Margin:" style="-fx-padding: 0 0 0 18;"/>
                     <Spinner fx:id="marginSpinner" editable="true" prefWidth="90">
                         <valueFactory>
                             <SpinnerValueFactory.IntegerSpinnerValueFactory initialValue="10" max="60" min="0"/>
                         </valueFactory>
                     </Spinner>
-                    <Label styleClass="field-hint" text="mm desde el borde"/>
+                    <Label styleClass="field-hint" text="mm from the edge"/>
                 </HBox>
-                <Label styleClass="field-label" text="Empezar en el número:" GridPane.rowIndex="3"/>
+                <Label styleClass="field-label" text="Start at number:" GridPane.rowIndex="3"/>
                 <Spinner fx:id="startSpinner" editable="true" prefWidth="90" GridPane.columnIndex="1"
                          GridPane.rowIndex="3">
                     <valueFactory>
                         <SpinnerValueFactory.IntegerSpinnerValueFactory initialValue="1" max="100000" min="0"/>
                     </valueFactory>
                 </Spinner>
-                <Label styleClass="field-label" text="Páginas a numerar:" GridPane.rowIndex="4"/>
+                <Label styleClass="field-label" text="Pages to number:" GridPane.rowIndex="4"/>
                 <HBox alignment="CENTER_LEFT" spacing="16" GridPane.columnIndex="1" GridPane.rowIndex="4">
-                    <RadioButton fx:id="allPages" mnemonicParsing="false" selected="true" text="Todas"
+                    <RadioButton fx:id="allPages" mnemonicParsing="false" selected="true" text="All"
                                  toggleGroup="$scope"/>
-                    <RadioButton fx:id="somePages" mnemonicParsing="false" text="Solo estas:" toggleGroup="$scope"/>
-                    <TextField fx:id="rangesField" promptText="p. ej. 2-* (sin la portada)" HBox.hgrow="ALWAYS"/>
+                    <RadioButton fx:id="somePages" mnemonicParsing="false" text="Only these:" toggleGroup="$scope"/>
+                    <TextField fx:id="rangesField" promptText="e.g. 2-* (skip the cover)" HBox.hgrow="ALWAYS"/>
                 </HBox>
             </GridPane>
             <Label fx:id="exampleLabel" styleClass="preset-hint"/>
         </VBox>
         <VBox spacing="10" styleClass="section">
-            <Label styleClass="section-label" text="3. Dónde guardar el resultado"/>
+            <Label styleClass="section-label" text="3. Where to save the result"/>
             <fx:include fx:id="output" source="file-field.fxml"/>
         </VBox>
         <fx:include fx:id="runBar" source="run-bar.fxml"/>

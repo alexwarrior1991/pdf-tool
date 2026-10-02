@@ -36,8 +36,8 @@ public class PagesController extends OperationView {
 
     @FXML
     private void initialize() {
-        inputController.configure(FileFieldController.Mode.OPEN_PDF, "PDF del que quieres sacar o quitar páginas");
-        outputController.configure(FileFieldController.Mode.SAVE_PDF, "Ruta del PDF que se va a crear");
+        inputController.configure(FileFieldController.Mode.OPEN_PDF, "PDF to extract or remove pages from");
+        outputController.configure(FileFieldController.Mode.SAVE_PDF, "Path of the PDF to create");
         thumbnailsController.setSelectable(true);
         thumbnailsController.bindRangesField(rangesField);
         runBarController.setOnRun(this::run);
@@ -53,41 +53,41 @@ public class PagesController extends OperationView {
         boolean keep = keepMode.isSelected();
         thumbnailsController.setSelectionStyle(keep ? ThumbnailsController.SelectionStyle.HIGHLIGHT
                 : ThumbnailsController.SelectionStyle.REMOVE);
-        runBarController.setText(keep ? "Extraer páginas" : "Eliminar páginas");
+        runBarController.setText(keep ? "Extract pages" : "Remove pages");
         suggestOutput();
     }
 
     private void suggestOutput() {
         Path input = inputController.getPath();
         if (input != null && Files.isRegularFile(input)) {
-            outputController.suggest(OutputNames.besides(input, keepMode.isSelected() ? "extraido" : "sin_paginas", "pdf"));
+            outputController.suggest(OutputNames.besides(input, keepMode.isSelected() ? "extracted" : "pages_removed", "pdf"));
         }
     }
 
     private void run() {
-        Path input = inputFile(inputController, "Elige el PDF.");
+        Path input = inputFile(inputController, "Choose the PDF.");
         if (input == null) return;
         boolean keep = keepMode.isSelected();
         List<CliUtil.PageRange> ranges = ranges(rangesField, true, keep
-                ? "Marca las páginas que quieres conservar (haz clic en las miniaturas o escribe p. ej. 1-3, 7)."
-                : "Marca las páginas que quieres eliminar (haz clic en las miniaturas o escribe p. ej. 2, 5-7).");
+                ? "Select the pages to keep (click the thumbnails or type e.g. 1-3, 7)."
+                : "Select the pages to remove (click the thumbnails or type e.g. 2, 5-7).");
         if (ranges == null) return;
-        Path output = outputFile(outputController, "Indica dónde guardar el PDF resultante.");
+        Path output = outputFile(outputController, "Choose where to save the resulting PDF.");
         if (output == null) return;
         if (keep) {
-            runBarController.start("Extrayendo páginas…",
+            runBarController.start("Extracting pages…",
                     progress -> PdfOps.extractPages(input, output, ranges),
                     pages -> {
-                        runBarController.success("Nuevo PDF con " + pages + (pages == 1 ? " página" : " páginas")
-                                + ": «" + fileName(output) + "».", output, null);
+                        runBarController.success("New PDF with " + pages + (pages == 1 ? " page" : " pages")
+                                + ": \"" + fileName(output) + "\".", output, null);
                         reloadIfOverwritten(input, output);
                     });
         } else {
-            runBarController.start("Eliminando páginas…",
+            runBarController.start("Removing pages…",
                     progress -> PdfOps.deletePages(input, output, ranges),
                     pages -> {
-                        runBarController.success("Páginas eliminadas. El nuevo PDF tiene " + pages
-                                + (pages == 1 ? " página" : " páginas") + ": «" + fileName(output) + "».", output, null);
+                        runBarController.success("Pages removed. The new PDF has " + pages
+                                + (pages == 1 ? " page" : " pages") + ": \"" + fileName(output) + "\".", output, null);
                         reloadIfOverwritten(input, output);
                     });
         }

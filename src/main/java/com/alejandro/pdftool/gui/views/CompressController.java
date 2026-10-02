@@ -19,10 +19,10 @@ public class CompressController extends OperationView {
 
     /** Preajustes: calidad JPEG (%) y DPI máximo (null = sin límite). */
     private enum Preset {
-        HIGH("Alta calidad", 85, null),
-        BALANCED("Equilibrado (recomendado)", 70, 150),
-        SMALLEST("Máxima compresión", 50, 96),
-        CUSTOM("Personalizado", -1, null);
+        HIGH("High quality", 85, null),
+        BALANCED("Balanced (recommended)", 70, 150),
+        SMALLEST("Smallest size", 50, 96),
+        CUSTOM("Custom", -1, null);
 
         final String label;
         final int quality;
@@ -65,16 +65,16 @@ public class CompressController extends OperationView {
 
     @FXML
     private void initialize() {
-        inputController.configure(FileFieldController.Mode.OPEN_PDF, "PDF que quieres comprimir");
-        outputController.configure(FileFieldController.Mode.SAVE_PDF, "Ruta del PDF comprimido");
-        runBarController.setText("Comprimir PDF");
+        inputController.configure(FileFieldController.Mode.OPEN_PDF, "PDF to compress");
+        outputController.configure(FileFieldController.Mode.SAVE_PDF, "Path of the compressed PDF");
+        runBarController.setText("Compress PDF");
         runBarController.setOnRun(this::run);
-        suggestOutputBesides(inputController, outputController, "comprimido", "pdf");
+        suggestOutputBesides(inputController, outputController, "compressed", "pdf");
 
         presetBox.getItems().setAll(Preset.values());
         presetBox.valueProperty().addListener((obs, old, preset) -> apply(preset));
         qualitySlider.valueProperty().addListener((obs, old, value) -> {
-            qualityLabel.setText(Math.round(value.doubleValue()) + " %");
+            qualityLabel.setText(Math.round(value.doubleValue()) + "%");
             customised();
         });
         dpiSpinner.disableProperty().bind(limitDpiCheck.selectedProperty().not());
@@ -99,19 +99,19 @@ public class CompressController extends OperationView {
     }
 
     private void run() {
-        Path input = inputFile(inputController, "Elige el PDF que quieres comprimir.");
+        Path input = inputFile(inputController, "Choose the PDF to compress.");
         if (input == null) return;
         Integer maxDpi = null;
         if (limitDpiCheck.isSelected()) {
-            maxDpi = spinnerValue(dpiSpinner, "La resolución máxima");
+            maxDpi = spinnerValue(dpiSpinner, "The maximum resolution");
             if (maxDpi == null) return;
         }
-        Path output = outputFile(outputController, "Indica dónde guardar el PDF comprimido.");
+        Path output = outputFile(outputController, "Choose where to save the compressed PDF.");
         if (output == null) return;
         double quality = Math.round(qualitySlider.getValue()) / 100.0;
         Integer dpiLimit = maxDpi;
         boolean removeMetadata = removeMetadataCheck.isSelected();
-        runBarController.start("Comprimiendo imágenes…",
+        runBarController.start("Compressing images…",
                 progress -> PdfOps.compress(input, output, quality, dpiLimit, removeMetadata, progress),
                 result -> {
                     done(result, output);
@@ -120,13 +120,13 @@ public class CompressController extends OperationView {
     }
 
     private void done(CompressResult result, Path output) {
-        String images = result.imagesFound() == 0 ? "El PDF no tiene imágenes que recomprimir."
-                : "Imágenes recomprimidas: " + result.imagesRecompressed() + " de " + result.imagesFound() + ".";
+        String images = result.imagesFound() == 0 ? "The PDF has no images to recompress."
+                : "Images recompressed: " + result.imagesRecompressed() + " of " + result.imagesFound() + ".";
         if (result.bytesAfter() < result.bytesBefore()) {
-            runBarController.success("Listo: " + Formats.compression(result) + ". " + images, output, null);
+            runBarController.success("Done: " + Formats.compression(result) + ". " + images, output, null);
         } else {
-            runBarController.success("El PDF ya estaba bastante optimizado: " + Formats.compression(result) + ". "
-                    + images + " Prueba con «Máxima compresión».", output, null);
+            runBarController.success("The PDF was already well optimized: " + Formats.compression(result) + ". "
+                    + images + " Try \"Smallest size\".", output, null);
         }
     }
 }

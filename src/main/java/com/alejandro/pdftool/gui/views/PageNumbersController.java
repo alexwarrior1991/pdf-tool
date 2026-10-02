@@ -49,13 +49,13 @@ public class PageNumbersController extends OperationView {
 
     @FXML
     private void initialize() {
-        inputController.configure(FileFieldController.Mode.OPEN_PDF, "PDF que quieres numerar");
-        outputController.configure(FileFieldController.Mode.SAVE_PDF, "Ruta del PDF que se va a crear");
-        runBarController.setText("Numerar páginas");
+        inputController.configure(FileFieldController.Mode.OPEN_PDF, "PDF to number");
+        outputController.configure(FileFieldController.Mode.SAVE_PDF, "Path of the PDF to create");
+        runBarController.setText("Number pages");
         runBarController.setOnRun(this::run);
-        suggestOutputBesides(inputController, outputController, "numerado", "pdf");
+        suggestOutputBesides(inputController, outputController, "numbered", "pdf");
 
-        formatBox.getItems().setAll(PageNumberOptions.DEFAULT_FORMAT, "{n} / {total}", "{n}", "- {n} -", "Pág. {n}");
+        formatBox.getItems().setAll(PageNumberOptions.DEFAULT_FORMAT, "{n} / {total}", "{n}", "- {n} -", "p. {n}");
         formatBox.setValue(PageNumberOptions.DEFAULT_FORMAT);
         positionBox.getItems().setAll(PageNumberOptions.Position.values());
         positionBox.setValue(PageNumberOptions.Position.BOTTOM_CENTER);
@@ -87,21 +87,21 @@ public class PageNumbersController extends OperationView {
         }
         int first = startSpinner.getValue();
         String total = numbered > 0 ? String.valueOf(first + numbered - 1) : "N";
-        exampleLabel.setText("Así quedará la primera: «" + format().replace("{n}", String.valueOf(first))
-                .replace("{total}", total) + "»");
+        exampleLabel.setText("The first one will look like: \"" + format().replace("{n}", String.valueOf(first))
+                .replace("{total}", total) + "\"");
     }
 
     private void run() {
-        Path input = inputFile(inputController, "Elige el PDF que quieres numerar.");
+        Path input = inputFile(inputController, "Choose the PDF to number.");
         if (input == null) return;
         List<CliUtil.PageRange> ranges = allPages.isSelected() ? List.of()
-                : ranges(rangesField, true, "Indica qué páginas numerar, p. ej. 2-* para saltarte la portada.");
+                : ranges(rangesField, true, "Enter which pages to number, e.g. 2-* to skip the cover.");
         if (ranges == null) return;
-        Integer size = spinnerValue(sizeSpinner, "El tamaño de letra");
+        Integer size = spinnerValue(sizeSpinner, "The font size");
         if (size == null) return;
-        Integer margin = spinnerValue(marginSpinner, "El margen");
+        Integer margin = spinnerValue(marginSpinner, "The margin");
         if (margin == null) return;
-        Integer start = spinnerValue(startSpinner, "El número inicial");
+        Integer start = spinnerValue(startSpinner, "The starting number");
         if (start == null) return;
         PageNumberOptions options;
         try {
@@ -111,13 +111,13 @@ public class PageNumbersController extends OperationView {
             invalid(e.getMessage());
             return;
         }
-        Path output = outputFile(outputController, "Indica dónde guardar el PDF resultante.");
+        Path output = outputFile(outputController, "Choose where to save the resulting PDF.");
         if (output == null) return;
-        runBarController.start("Numerando páginas…",
+        runBarController.start("Numbering pages…",
                 progress -> PdfOps.addPageNumbers(input, output, options, progress),
                 numbered -> {
-                    runBarController.success("Se han numerado " + numbered
-                            + (numbered == 1 ? " página" : " páginas") + ": «" + fileName(output) + "».", output, null);
+                    runBarController.success("Numbered " + numbered
+                            + (numbered == 1 ? " page" : " pages") + ": \"" + fileName(output) + "\".", output, null);
                     if (sameFile(input, output)) inputController.refresh();
                 });
     }

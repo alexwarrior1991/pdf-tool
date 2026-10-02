@@ -45,8 +45,8 @@ public final class GuiLauncher {
             Application.launch(PdfToolApp.class, args);
             return true;
         } catch (RuntimeException | LinkageError e) {
-            System.err.println("No se ha podido abrir la interfaz gráfica: " + e);
-            System.err.println("Si el JAR se generó en otro sistema operativo, vuelve a generarlo en este con «mvn package».");
+            System.err.println("Could not open the graphical interface: " + e);
+            System.err.println("If the JAR was built on another operating system, rebuild it on this one with \"mvn package\".");
             return false;
         }
     }

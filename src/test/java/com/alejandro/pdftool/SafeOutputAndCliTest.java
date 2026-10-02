@@ -58,16 +58,16 @@ class SafeOutputAndCliTest {
         assertEquals(2, App.run(new String[]{"desconocido"}));
 
         String err = captureErr(() -> assertEquals(1, App.run(new String[]{"info", dir.resolve("no.pdf").toString()})));
-        assertTrue(err.startsWith("Error: No existe el archivo"), err);
+        assertTrue(err.startsWith("Error: File \""), err);
         assertFalse(err.contains("Exception"), err);
 
         err = captureErr(() -> assertEquals(2, App.run(new String[]{"rotate", in.toString(), "-o",
                 dir.resolve("o.pdf").toString(), "-deg", "45"})));
-        assertTrue(err.contains("múltiplo de 90"), err);
+        assertTrue(err.contains("multiple of 90"), err);
 
         err = captureErr(() -> assertEquals(2, App.run(new String[]{"split", in.toString(), "-ranges", "3-1", "-o",
                 dir.resolve("p").toString()})));
-        assertTrue(err.contains("Rango al revés"), err);
+        assertTrue(err.contains("Reversed range"), err);
     }
 
     @Test

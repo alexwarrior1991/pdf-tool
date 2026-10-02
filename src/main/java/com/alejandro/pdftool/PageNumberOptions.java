@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
  * Opciones para numerar páginas.
  *
  * @param format      texto con {@code {n}} (número de página) y {@code {total}} (último número), p. ej.
- *                    {@code "Página {n} de {total}"}
+ *                    {@code "Page {n} of {total}"}
  * @param position    posición en la página
  * @param fontSize    tamaño de la fuente en puntos
  * @param margin      distancia al borde en puntos (1 cm ≈ 28,35 pt)
@@ -19,25 +19,25 @@ import java.util.stream.Collectors;
 public record PageNumberOptions(String format, Position position, float fontSize, float margin, int startNumber,
                                 List<CliUtil.PageRange> pages) {
 
-    public static final String DEFAULT_FORMAT = "Página {n} de {total}";
+    public static final String DEFAULT_FORMAT = "Page {n} of {total}";
     public static final float DEFAULT_FONT_SIZE = 10f;
     public static final float DEFAULT_MARGIN = 28.35f;
 
     public PageNumberOptions {
         if (format == null || format.isBlank()) {
-            throw new IllegalArgumentException("El formato de la numeración no puede estar vacío.");
+            throw new IllegalArgumentException("The page number format cannot be empty.");
         }
         if (position == null) {
-            throw new IllegalArgumentException("Indica la posición de la numeración.");
+            throw new IllegalArgumentException("Choose a position for the page numbers.");
         }
         if (!(fontSize >= 4 && fontSize <= 72)) {
-            throw new IllegalArgumentException("El tamaño de la fuente debe estar entre 4 y 72 puntos.");
+            throw new IllegalArgumentException("The font size must be between 4 and 72 points.");
         }
         if (!(margin >= 0 && margin <= 300)) {
-            throw new IllegalArgumentException("El margen debe estar entre 0 y 300 puntos.");
+            throw new IllegalArgumentException("The margin must be between 0 and 300 points.");
         }
         if (startNumber < 0) {
-            throw new IllegalArgumentException("El número inicial no puede ser negativo.");
+            throw new IllegalArgumentException("The starting number cannot be negative.");
         }
         pages = pages == null ? List.of() : List.copyOf(pages);
     }
@@ -48,12 +48,12 @@ public record PageNumberOptions(String format, Position position, float fontSize
     }
 
     public enum Position {
-        TOP_LEFT("Arriba a la izquierda"),
-        TOP_CENTER("Arriba en el centro"),
-        TOP_RIGHT("Arriba a la derecha"),
-        BOTTOM_LEFT("Abajo a la izquierda"),
-        BOTTOM_CENTER("Abajo en el centro"),
-        BOTTOM_RIGHT("Abajo a la derecha");
+        TOP_LEFT("Top left"),
+        TOP_CENTER("Top center"),
+        TOP_RIGHT("Top right"),
+        BOTTOM_LEFT("Bottom left"),
+        BOTTOM_CENTER("Bottom center"),
+        BOTTOM_RIGHT("Bottom right");
 
         private final String label;
 
@@ -84,7 +84,7 @@ public record PageNumberOptions(String format, Position position, float fontSize
             return Arrays.stream(values())
                     .filter(p -> p.cliName().equals(wanted))
                     .findFirst()
-                    .orElseThrow(() -> new IllegalArgumentException("Posición desconocida «" + value + "». Usa: "
+                    .orElseThrow(() -> new IllegalArgumentException("Unknown position \"" + value + "\". Use: "
                             + Arrays.stream(values()).map(Position::cliName).collect(Collectors.joining(", "))));
         }
 

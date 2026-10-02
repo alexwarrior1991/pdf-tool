@@ -14,7 +14,7 @@ import java.util.regex.Pattern;
 public class CliUtil {
 
     private static final Pattern RANGE = Pattern.compile("(\\d+)(?:\\s*-\\s*(\\d+|\\*))?");
-    private static final String RANGE_HELP = "Usa el formato 1-3,7,10-* (el * significa «hasta el final»).";
+    private static final String RANGE_HELP = "Use the format 1-3,7,10-* (* means \"to the end\").";
 
     public static String optValue(List<String> args, String flag) {
         int i = args.indexOf(flag);
@@ -58,16 +58,16 @@ public class CliUtil {
             if (part.isEmpty()) continue;
             Matcher m = RANGE.matcher(part);
             if (!m.matches()) {
-                throw new IllegalArgumentException("Rango de páginas no válido: «" + part + "». " + RANGE_HELP);
+                throw new IllegalArgumentException("Invalid page range: \"" + part + "\". " + RANGE_HELP);
             }
             int start = parsePageNumber(m.group(1), part);
             int end = m.group(2) == null ? start
                     : "*".equals(m.group(2)) ? Integer.MAX_VALUE : parsePageNumber(m.group(2), part);
             if (start < 1) {
-                throw new IllegalArgumentException("Las páginas empiezan en 1: «" + part + "».");
+                throw new IllegalArgumentException("Pages start at 1: \"" + part + "\".");
             }
             if (end < start) {
-                throw new IllegalArgumentException("Rango al revés: «" + part + "» (el inicio es mayor que el final).");
+                throw new IllegalArgumentException("Reversed range: \"" + part + "\" (the start is greater than the end).");
             }
             ranges.add(new PageRange(start, end));
         }
@@ -78,7 +78,7 @@ public class CliUtil {
         try {
             return Integer.parseInt(digits);
         } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("Número de página demasiado grande: «" + part + "».");
+            throw new IllegalArgumentException("Page number too large: \"" + part + "\".");
         }
     }
 
@@ -133,10 +133,10 @@ public class CliUtil {
         try {
             number = Integer.parseInt(value.strip());
         } catch (NumberFormatException e) {
-            throw new IllegalArgumentException(what + " debe ser un número entero: «" + value + "».");
+            throw new IllegalArgumentException(what + " must be a whole number: \"" + value + "\".");
         }
         if (number < min || number > max) {
-            throw new IllegalArgumentException(what + " debe estar entre " + min + " y " + max + ": «" + value + "».");
+            throw new IllegalArgumentException(what + " must be between " + min + " and " + max + ": \"" + value + "\".");
         }
         return number;
     }
@@ -147,11 +147,11 @@ public class CliUtil {
         try {
             number = Double.parseDouble(value.strip().replace(',', '.'));
         } catch (NumberFormatException e) {
-            throw new IllegalArgumentException(what + " debe ser un número: «" + value + "».");
+            throw new IllegalArgumentException(what + " must be a number: \"" + value + "\".");
         }
         if (!(number >= min && number <= max)) {
-            throw new IllegalArgumentException(what + " debe estar entre " + format(min) + " y " + format(max)
-                    + ": «" + value + "».");
+            throw new IllegalArgumentException(what + " must be between " + format(min) + " and " + format(max)
+                    + ": \"" + value + "\".");
         }
         return number;
     }
@@ -161,7 +161,7 @@ public class CliUtil {
         String hex = value.strip();
         if (hex.startsWith("#")) hex = hex.substring(1);
         if (!hex.matches("[0-9a-fA-F]{6}")) {
-            throw new IllegalArgumentException(what + " debe tener el formato #RRGGBB, p. ej. #C80000: «" + value + "».");
+            throw new IllegalArgumentException(what + " must use the format #RRGGBB, e.g. #C80000: \"" + value + "\".");
         }
         return new Color(Integer.parseInt(hex, 16));
     }

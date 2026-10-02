@@ -61,9 +61,9 @@ class SecurityTest {
         Path out = dir.resolve("dec.pdf");
 
         PdfToolException userOnly = assertThrows(PdfToolException.class, () -> PdfOps.decrypt(enc, out, "lectura"));
-        assertTrue(userOnly.getMessage().contains("propietario"));
+        assertTrue(userOnly.getMessage().contains("owner password"));
         PdfToolException wrong = assertThrows(PdfToolException.class, () -> PdfOps.decrypt(enc, out, "otra"));
-        assertTrue(wrong.getMessage().contains("no es correcta"));
+        assertTrue(wrong.getMessage().contains("Incorrect password"));
 
         PdfOps.decrypt(enc, out, "propietario");
         try (PDDocument doc = Loader.loadPDF(out.toFile())) {
@@ -85,7 +85,7 @@ class SecurityTest {
         Path out = dir.resolve("out.pdf");
 
         PdfToolException e = assertThrows(PdfToolException.class, () -> PdfOps.rotate(restricted, out, 90, List.of()));
-        assertTrue(e.getMessage().contains("restricciones"), e.getMessage());
+        assertTrue(e.getMessage().contains("restrictions"), e.getMessage());
         assertThrows(PdfToolException.class, () -> PdfOps.merge(List.of(in, restricted), out));
         assertThrows(PdfToolException.class,
                 () -> PdfOps.watermarkText(restricted, out, "X", 0.2f, Color.RED, ProgressListener.NONE));
@@ -122,6 +122,6 @@ class SecurityTest {
         Path enc = dir.resolve("enc.pdf");
         PdfOps.encrypt(in, enc, "propietario", "lectura", Set.of());
         PdfToolException e = assertThrows(PdfToolException.class, () -> PdfOps.info(enc));
-        assertTrue(e.getMessage().contains("contraseña de apertura"), e.getMessage());
+        assertTrue(e.getMessage().contains("open password"), e.getMessage());
     }
 }

@@ -12,20 +12,20 @@
             xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.alejandro.pdftool.gui.views.ImagesToPdfController">
     <VBox spacing="16" styleClass="page">
         <VBox spacing="4">
-            <Label styleClass="view-title" text="Imágenes a PDF"/>
+            <Label styleClass="view-title" text="Images to PDF"/>
             <Label styleClass="view-description" wrapText="true"
-                   text="Convierte fotos y escaneos en un único PDF, una imagen por página. Las fotos JPG se incluyen sin perder calidad y las del móvil se enderezan solas según su orientación."/>
+                   text="Turn photos and scans into a single PDF, one image per page. JPG photos are added without losing quality, and phone photos are straightened automatically based on their orientation."/>
         </VBox>
         <VBox spacing="10" styleClass="section">
-            <Label styleClass="section-label" text="1. Imágenes (JPG, PNG, GIF, BMP o TIFF)"/>
+            <Label styleClass="section-label" text="1. Images (JPG, PNG, GIF, BMP or TIFF)"/>
             <fx:include fx:id="images" source="file-list.fxml"/>
         </VBox>
         <VBox spacing="10" styleClass="section">
-            <Label styleClass="section-label" text="2. Página"/>
+            <Label styleClass="section-label" text="2. Page"/>
             <HBox alignment="CENTER_LEFT" spacing="10">
-                <Label styleClass="field-label" text="Tamaño:"/>
+                <Label styleClass="field-label" text="Size:"/>
                 <ComboBox fx:id="pageSizeBox" prefWidth="220"/>
-                <Label styleClass="field-label" style="-fx-padding: 0 0 0 18;" text="Margen:"/>
+                <Label styleClass="field-label" style="-fx-padding: 0 0 0 18;" text="Margin:"/>
                 <Spinner fx:id="marginSpinner" editable="true" prefWidth="90">
                     <valueFactory>
                         <SpinnerValueFactory.IntegerSpinnerValueFactory initialValue="10" max="60" min="0"/>
@@ -34,10 +34,10 @@
                 <Label styleClass="field-hint" text="mm"/>
             </HBox>
             <Label styleClass="field-hint" wrapText="true"
-                   text="Con A4 o Carta cada imagen se ajusta y centra en la hoja (en horizontal si la imagen es apaisada). «Tamaño de cada imagen» crea páginas a la medida de la foto."/>
+                   text="With A4 or Letter, each image is scaled and centered on the page (landscape if the image is wide). &quot;Size of each image&quot; makes pages that match the photo."/>
         </VBox>
         <VBox spacing="10" styleClass="section">
-            <Label styleClass="section-label" text="3. Dónde guardar el PDF"/>
+            <Label styleClass="section-label" text="3. Where to save the PDF"/>
             <fx:include fx:id="output" source="file-field.fxml"/>
         </VBox>
         <fx:include fx:id="runBar" source="run-bar.fxml"/>

@@ -37,7 +37,7 @@ final class PageStamper {
         // Una sola fuente y un solo estado gráfico para todo el documento: PDResources reutiliza la entrada
         // cuando ve el mismo objeto, así no se duplican recursos página a página.
         PDFont font = new PDType1Font(Standard14Fonts.FontName.HELVETICA_BOLD);
-        requireEncodable(font, text, "La marca de agua");
+        requireEncodable(font, text, "The watermark");
         float unitWidth = font.getStringWidth(text) / 1000f;
         float unitHeight = capHeight(font);
         PDExtendedGraphicsState transparency = new PDExtendedGraphicsState();
@@ -69,12 +69,12 @@ final class PageStamper {
 
     static int pageNumbers(PDDocument doc, PageNumberOptions options, ProgressListener progress) throws IOException {
         PDFont font = new PDType1Font(Standard14Fonts.FontName.HELVETICA);
-        requireEncodable(font, options.format().replace("{n}", "").replace("{total}", ""), "El formato de la numeración");
+        requireEncodable(font, options.format().replace("{n}", "").replace("{total}", ""), "The page number format");
         int pageCount = doc.getNumberOfPages();
         List<Integer> pages = new ArrayList<>(CliUtil.resolvePages(options.pages(), pageCount));
         Collections.sort(pages);
         if (pages.isEmpty()) {
-            throw new PdfToolException("Ninguna de las páginas indicadas existe (el documento tiene " + pageCount + " páginas).");
+            throw new PdfToolException("None of the specified pages exist (the document has " + pageCount + " pages).");
         }
         int last = options.startNumber() + pages.size() - 1;
         float size = options.fontSize();
@@ -122,8 +122,8 @@ final class PageStamper {
             }
         });
         if (!unsupported.isEmpty()) {
-            throw new IllegalArgumentException(what + " contiene caracteres que la fuente Helvetica no admite: "
-                    + unsupported.stream().map(c -> "«" + c + "»").collect(Collectors.joining(" ")));
+            throw new IllegalArgumentException(what + " contains characters the Helvetica font does not support: "
+                    + unsupported.stream().map(c -> "\"" + c + "\"").collect(Collectors.joining(" ")));
         }
     }
 

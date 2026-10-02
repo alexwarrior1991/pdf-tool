@@ -33,9 +33,9 @@ public class PdfToolApp extends Application {
         stage.setMinHeight(Math.min(600, screen.getHeight()));
         stage.setScene(scene);
         stage.setOnCloseRequest(event -> {
-            if (context.isBusy() && !Dialogs.confirm(stage, "Operación en curso",
-                    "Hay una operación en marcha. Si sales ahora se cancelará y el archivo de salida no se creará.",
-                    "Salir de todos modos")) {
+            if (context.isBusy() && !Dialogs.confirm(stage, "Operation in progress",
+                    "An operation is still running. If you exit now, it will be canceled and the output file won't be created.",
+                    "Exit anyway")) {
                 event.consume();
             }
         });

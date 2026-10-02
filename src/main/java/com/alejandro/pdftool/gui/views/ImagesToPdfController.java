@@ -35,8 +35,8 @@ public class ImagesToPdfController extends OperationView {
     @FXML
     private void initialize() {
         imagesController.configure(FileListController.Kind.IMAGES);
-        outputController.configure(FileFieldController.Mode.SAVE_PDF, "Ruta del PDF que se va a crear");
-        runBarController.setText("Crear PDF");
+        outputController.configure(FileFieldController.Mode.SAVE_PDF, "Path of the PDF to create");
+        runBarController.setText("Create PDF");
         runBarController.setOnRun(this::run);
         pageSizeBox.getItems().setAll(ImagePageSize.values());
         pageSizeBox.setValue(ImagePageSize.A4);
@@ -44,7 +44,7 @@ public class ImagesToPdfController extends OperationView {
         imagesController.files().addListener((ListChangeListener<Path>) change -> {
             if (!imagesController.files().isEmpty()) {
                 Path folder = imagesController.files().get(0).toAbsolutePath().getParent();
-                outputController.suggest(OutputNames.unique(folder, "imagenes", "pdf"));
+                outputController.suggest(OutputNames.unique(folder, "images", "pdf"));
             }
         });
     }
@@ -52,18 +52,18 @@ public class ImagesToPdfController extends OperationView {
     private void run() {
         List<Path> images = List.copyOf(imagesController.files());
         if (images.isEmpty()) {
-            invalid("Añade al menos una imagen.");
+            invalid("Add at least one image.");
             return;
         }
         ImagePageSize size = pageSizeBox.getValue();
-        Integer marginMm = size == ImagePageSize.IMAGE ? Integer.valueOf(0) : spinnerValue(marginSpinner, "El margen");
+        Integer marginMm = size == ImagePageSize.IMAGE ? Integer.valueOf(0) : spinnerValue(marginSpinner, "The margin");
         if (marginMm == null) return;
-        Path output = outputFile(outputController, "Indica dónde guardar el PDF.");
+        Path output = outputFile(outputController, "Choose where to save the PDF.");
         if (output == null) return;
         float margin = (float) (marginMm * MM_TO_PT);
-        runBarController.start("Creando el PDF…",
+        runBarController.start("Creating the PDF…",
                 progress -> PdfOps.imagesToPdf(images, output, size, margin, progress),
-                pages -> runBarController.success("PDF creado con " + pages + (pages == 1 ? " página" : " páginas")
-                        + ": «" + fileName(output) + "».", output, null));
+                pages -> runBarController.success("Created a PDF with " + pages + (pages == 1 ? " page" : " pages")
+                        + ": \"" + fileName(output) + "\".", output, null));
     }
 }

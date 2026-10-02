@@ -6,13 +6,13 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<!-- Campo de archivo reutilizable: ruta + «Examinar…» + arrastrar y soltar. Se configura desde la vista que lo incluye. -->
+<!-- Reusable file field: path + “Browse…” + drag and drop. Configured by the view that includes it. -->
 <VBox fx:id="root" spacing="4" styleClass="file-field" stylesheets="@app.css"
       xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.alejandro.pdftool.gui.components.FileFieldController">
     <HBox alignment="CENTER_LEFT" spacing="8">
-        <TextField fx:id="pathField" promptText="Arrastra aquí un archivo o pulsa «Examinar…»" HBox.hgrow="ALWAYS"/>
-        <Button fx:id="browseButton" mnemonicParsing="false" onAction="#browse" text="Examinar…"/>
+        <TextField fx:id="pathField" promptText="Drop a file here or click &quot;Browse…&quot;" HBox.hgrow="ALWAYS"/>
+        <Button fx:id="browseButton" mnemonicParsing="false" onAction="#browse" text="Browse…"/>
     </HBox>
     <Label fx:id="summaryLabel" styleClass="field-hint"/>
 </VBox>

@@ -12,9 +12,9 @@
             xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.alejandro.pdftool.gui.views.TextController">
     <VBox spacing="16" styleClass="page">
         <VBox spacing="4">
-            <Label styleClass="view-title" text="Extraer texto"/>
+            <Label styleClass="view-title" text="Extract text"/>
             <Label styleClass="view-description" wrapText="true"
-                   text="Obtén el texto de un PDF para copiarlo o guardarlo como archivo .txt. Los PDF escaneados (solo imágenes) no tienen texto que extraer."/>
+                   text="Get the text from a PDF to copy it or save it as a .txt file. Scanned PDFs (images only) have no text to extract."/>
         </VBox>
         <VBox spacing="10" styleClass="section">
             <Label styleClass="section-label" text="1. PDF"/>
@@ -23,13 +23,13 @@
         <fx:include fx:id="runBar" source="run-bar.fxml"/>
         <VBox spacing="10" styleClass="section" VBox.vgrow="ALWAYS">
             <HBox alignment="CENTER_LEFT" spacing="8">
-                <Label styleClass="section-label" text="2. Texto"/>
+                <Label styleClass="section-label" text="2. Text"/>
                 <Label fx:id="statsLabel" styleClass="field-hint"/>
                 <Region HBox.hgrow="ALWAYS"/>
-                <Button fx:id="copyButton" mnemonicParsing="false" onAction="#copy" text="Copiar todo"/>
-                <Button fx:id="saveButton" mnemonicParsing="false" onAction="#save" text="Guardar como .txt…"/>
+                <Button fx:id="copyButton" mnemonicParsing="false" onAction="#copy" text="Copy all"/>
+                <Button fx:id="saveButton" mnemonicParsing="false" onAction="#save" text="Save as .txt…"/>
             </HBox>
-            <TextArea fx:id="textArea" editable="false" prefRowCount="20" promptText="Aquí aparecerá el texto extraído"
+            <TextArea fx:id="textArea" editable="false" prefRowCount="20" promptText="The extracted text will appear here"
                       styleClass="result-text" wrapText="true" VBox.vgrow="ALWAYS"/>
         </VBox>
     </VBox>

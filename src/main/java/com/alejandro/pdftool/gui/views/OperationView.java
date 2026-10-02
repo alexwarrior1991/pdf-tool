@@ -40,11 +40,11 @@ public abstract class OperationView {
     protected Path inputFile(FileFieldController field, String missingMessage) {
         Path path = field.getPath();
         if (path == null) {
-            invalid(field.hasText() ? "La ruta «" + field.getText() + "» no es válida." : missingMessage);
+            invalid(field.hasText() ? "The path \"" + field.getText() + "\" is not valid." : missingMessage);
             return null;
         }
         if (!Files.isRegularFile(path)) {
-            invalid("No existe el archivo «" + path + "».");
+            invalid("The file \"" + path + "\" does not exist.");
             return null;
         }
         return path;
@@ -54,11 +54,11 @@ public abstract class OperationView {
     protected Path outputFile(FileFieldController field, String missingMessage) {
         Path path = field.getPath();
         if (path == null) {
-            invalid(field.hasText() ? "La ruta «" + field.getText() + "» no es válida." : missingMessage);
+            invalid(field.hasText() ? "The path \"" + field.getText() + "\" is not valid." : missingMessage);
             return null;
         }
         if (Files.isDirectory(path)) {
-            invalid("«" + path + "» es una carpeta: indica también el nombre del archivo.");
+            invalid("\"" + path + "\" is a folder: please include the file name too.");
             return null;
         }
         if (!field.isConfirmedByDialog() && !runBarController.confirmOverwrite(path)) {
@@ -106,7 +106,7 @@ public abstract class OperationView {
         try {
             value = Integer.parseInt(typed);
         } catch (NumberFormatException e) {
-            invalid(what + " debe ser un número entero: «" + typed + "».");
+            invalid(what + " must be a whole number: \"" + typed + "\".");
             spinner.requestFocus();
             return null;
         }

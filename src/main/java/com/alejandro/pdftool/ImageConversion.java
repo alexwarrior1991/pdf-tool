@@ -78,7 +78,7 @@ final class ImageConversion {
         float freeWidth = pageBox.getWidth() - 2 * margin;
         float freeHeight = pageBox.getHeight() - 2 * margin;
         if (freeWidth <= 0 || freeHeight <= 0) {
-            throw new IllegalArgumentException("El margen es demasiado grande para el tamaño de página.");
+            throw new IllegalArgumentException("The margin is too large for the page size.");
         }
         float scale = Math.min(freeWidth / imageWidth, freeHeight / imageHeight);
         float w = imageWidth * scale;
@@ -108,7 +108,7 @@ final class ImageConversion {
 
     private static List<LoadedImage> load(PDDocument doc, Path file) throws IOException {
         if (!Files.isRegularFile(file)) {
-            throw new PdfToolException("No existe la imagen «" + file + "».");
+            throw new PdfToolException("Image \"" + file + "\" does not exist.");
         }
         byte[] bytes = Files.readAllBytes(file);
         if (isJpeg(bytes)) {
@@ -132,8 +132,8 @@ final class ImageConversion {
         try (ImageInputStream in = new MemoryCacheImageInputStream(new ByteArrayInputStream(bytes))) {
             Iterator<ImageReader> readers = ImageIO.getImageReaders(in);
             if (!readers.hasNext()) {
-                throw new PdfToolException("Formato de imagen no admitido: «" + Pdfs.name(file)
-                        + "». Usa JPG, PNG, GIF, BMP o TIFF.");
+                throw new PdfToolException("Unsupported image format: \"" + Pdfs.name(file)
+                        + "\". Use JPG, PNG, GIF, BMP or TIFF.");
             }
             ImageReader reader = readers.next();
             try {
@@ -151,7 +151,7 @@ final class ImageConversion {
         } catch (PdfToolException e) {
             throw e;
         } catch (IOException | RuntimeException e) {
-            throw new PdfToolException("No se ha podido leer la imagen «" + Pdfs.name(file) + "»: " + e.getMessage(), e);
+            throw new PdfToolException("Could not read image \"" + Pdfs.name(file) + "\": " + e.getMessage(), e);
         }
     }
 
@@ -163,7 +163,7 @@ final class ImageConversion {
         String writerFormat = format == ImageFormat.JPG ? "jpeg" : "png";
         Iterator<ImageWriter> writers = ImageIO.getImageWritersByFormatName(writerFormat);
         if (!writers.hasNext()) {
-            throw new PdfToolException("Java no tiene un codificador " + writerFormat.toUpperCase() + " disponible.");
+            throw new PdfToolException("No " + writerFormat.toUpperCase() + " encoder is available in Java.");
         }
         ImageWriter writer = writers.next();
         try (MemoryCacheImageOutputStream ios = new MemoryCacheImageOutputStream(out)) {

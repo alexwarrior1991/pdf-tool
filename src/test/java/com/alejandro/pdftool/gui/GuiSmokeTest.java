@@ -33,14 +33,14 @@ class GuiSmokeTest {
 
     @BeforeAll
     static void startJavaFx() throws InterruptedException {
-        Assumptions.assumeTrue(GuiLauncher.isGraphicalEnvironmentAvailable(), "No hay entorno gráfico");
+        Assumptions.assumeTrue(GuiLauncher.isGraphicalEnvironmentAvailable(), "No graphical environment");
         CountDownLatch started = new CountDownLatch(1);
         try {
             Platform.startup(started::countDown);
         } catch (IllegalStateException alreadyStarted) {
             started.countDown();
         } catch (UnsupportedOperationException noDisplay) {
-            Assumptions.abort("JavaFX no puede abrir la pantalla: " + noDisplay.getMessage());
+            Assumptions.abort("JavaFX cannot open the display: " + noDisplay.getMessage());
         }
         started.await(30, TimeUnit.SECONDS);
     }
@@ -68,7 +68,7 @@ class GuiSmokeTest {
         expected.addAll(VIEWS);
         expected.sort(null);
         navigationTargets.sort(null);
-        assertEquals(expected, navigationTargets, "cada pantalla debe tener su botón en la barra lateral");
+        assertEquals(expected, navigationTargets, "every screen must have its button in the sidebar");
     }
 
     private static <T> T onFxThread(Callable<T> action) throws Exception {

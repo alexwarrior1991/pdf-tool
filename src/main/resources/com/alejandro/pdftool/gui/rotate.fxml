@@ -17,35 +17,35 @@
             <ToggleGroup fx:id="scope"/>
         </fx:define>
         <VBox spacing="4">
-            <Label styleClass="view-title" text="Rotar páginas"/>
+            <Label styleClass="view-title" text="Rotate pages"/>
             <Label styleClass="view-description" wrapText="true"
-                   text="Endereza páginas que salen de lado o del revés. Las miniaturas muestran cómo quedarán."/>
+                   text="Straighten pages that appear sideways or upside down. The thumbnails show how they will look."/>
         </VBox>
         <VBox spacing="10" styleClass="section">
             <Label styleClass="section-label" text="1. PDF"/>
             <fx:include fx:id="input" source="file-field.fxml"/>
         </VBox>
         <VBox spacing="10" styleClass="section">
-            <Label styleClass="section-label" text="2. Giro"/>
+            <Label styleClass="section-label" text="2. Rotation"/>
             <HBox spacing="8">
-                <ToggleButton mnemonicParsing="false" selected="true" text="↻  90° a la derecha" toggleGroup="$angle"
+                <ToggleButton mnemonicParsing="false" selected="true" text="↻  90° right" toggleGroup="$angle"
                               userData="90"/>
                 <ToggleButton mnemonicParsing="false" text="180°" toggleGroup="$angle" userData="180"/>
-                <ToggleButton mnemonicParsing="false" text="↺  90° a la izquierda" toggleGroup="$angle"
+                <ToggleButton mnemonicParsing="false" text="↺  90° left" toggleGroup="$angle"
                               userData="270"/>
             </HBox>
-            <Label styleClass="section-label" text="3. Páginas" style="-fx-padding: 8 0 0 0;"/>
+            <Label styleClass="section-label" text="3. Pages" style="-fx-padding: 8 0 0 0;"/>
             <HBox alignment="CENTER_LEFT" spacing="20">
-                <RadioButton fx:id="allPages" mnemonicParsing="false" selected="true" text="Todas"
+                <RadioButton fx:id="allPages" mnemonicParsing="false" selected="true" text="All"
                              toggleGroup="$scope"/>
-                <RadioButton fx:id="somePages" mnemonicParsing="false" text="Solo estas:" toggleGroup="$scope"/>
-                <TextField fx:id="rangesField" promptText="Clic en las miniaturas o escribe, p. ej.: 1-3, 7"
+                <RadioButton fx:id="somePages" mnemonicParsing="false" text="Only these:" toggleGroup="$scope"/>
+                <TextField fx:id="rangesField" promptText="Click the thumbnails or type, e.g. 1-3, 7"
                            HBox.hgrow="ALWAYS"/>
             </HBox>
             <fx:include fx:id="thumbnails" source="thumbnails.fxml"/>
         </VBox>
         <VBox spacing="10" styleClass="section">
-            <Label styleClass="section-label" text="4. Dónde guardar el resultado"/>
+            <Label styleClass="section-label" text="4. Where to save the result"/>
             <fx:include fx:id="output" source="file-field.fxml"/>
         </VBox>
         <fx:include fx:id="runBar" source="run-bar.fxml"/>

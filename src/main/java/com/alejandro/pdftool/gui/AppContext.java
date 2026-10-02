@@ -43,7 +43,7 @@ public final class AppContext {
     public FXMLLoader loader(String fxml) {
         URL url = AppContext.class.getResource(fxml);
         if (url == null) {
-            throw new IllegalArgumentException("No existe la vista " + fxml);
+            throw new IllegalArgumentException("View not found: " + fxml);
         }
         FXMLLoader loader = new FXMLLoader(url);
         loader.setControllerFactory(this::createController);
@@ -60,7 +60,7 @@ public final class AppContext {
             }
             return type.getConstructor().newInstance();
         } catch (ReflectiveOperationException e) {
-            throw new IllegalStateException("No se puede crear el controlador " + type.getName(), e);
+            throw new IllegalStateException("Cannot create controller " + type.getName(), e);
         }
     }
 
