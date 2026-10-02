@@ -1,336 +1,566 @@
 package com.alejandro.pdftool;
 
-import org.apache.pdfbox.Loader;
-import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.multipdf.PDFMergerUtility;
+import org.apache.pdfbox.multipdf.Splitter;
 import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDDocumentInformation;
 import org.apache.pdfbox.pdmodel.PDPage;
-import org.apache.pdfbox.pdmodel.PDPageContentStream;
-import org.apache.pdfbox.pdmodel.PDResources;
-import org.apache.pdfbox.pdmodel.common.PDStream;
-import org.apache.pdfbox.pdmodel.encryption.AccessPermission;
 import org.apache.pdfbox.pdmodel.encryption.StandardProtectionPolicy;
-import org.apache.pdfbox.pdmodel.font.PDFont;
-import org.apache.pdfbox.pdmodel.font.PDType1Font;
-import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
-import org.apache.pdfbox.pdmodel.graphics.image.JPEGFactory;
-import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
-import org.apache.pdfbox.pdmodel.graphics.state.PDExtendedGraphicsState;
+import org.apache.pdfbox.rendering.ImageType;
+import org.apache.pdfbox.rendering.PDFRenderer;
 import org.apache.pdfbox.text.PDFTextStripper;
-import org.apache.pdfbox.util.Matrix;
 
-import javax.imageio.IIOImage;
-import javax.imageio.ImageIO;
-import javax.imageio.ImageWriteParam;
-import javax.imageio.ImageWriter;
-import javax.imageio.stream.MemoryCacheImageOutputStream;
-import java.awt.*;
+import java.awt.Color;
 import java.awt.image.BufferedImage;
-import java.io.*;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+import java.util.HashSet;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.IntStream;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
+/**
+ * Operaciones sobre PDFs. Es la fachada que usan tanto la línea de comandos como la interfaz gráfica.
+ * <p>
+ * Todas las operaciones que generan archivos escriben primero en un temporal y solo sustituyen el destino al
+ * terminar bien ({@link SafeOutput}); las que modifican un PDF respetan sus restricciones de seguridad
+ * ({@link Pdfs#requireFullAccess}).
+ */
 public class PdfOps {
 
+    public static final Color DEFAULT_WATERMARK_COLOR = new Color(200, 0, 0);
+    public static final float DEFAULT_WATERMARK_OPACITY = 0.2f;
+    public static final double DEFAULT_JPEG_QUALITY = 0.7;
+
+    // ENTRADAS
+    public static List<Path> expandPdfInputs(List<Path> inputs, Path exclude) throws IOException {
+        return InputFiles.expand(inputs, InputFiles.PDF_EXTENSIONS, exclude);
+    }
+
+    public static List<Path> expandImageInputs(List<Path> inputs, Path exclude) throws IOException {
+        return InputFiles.expand(inputs, InputFiles.IMAGE_EXTENSIONS, exclude);
+    }
+
     // MERGE
-    public static void merge(List<Path> inputs, Path output) throws IOException {
-        Files.createDirectories(output.toAbsolutePath().getParent());
-        PDFMergerUtility mu = new PDFMergerUtility();
-        mu.setDestinationFileName(output.toString());
-        inputs.stream().filter(Files::exists)
-                .map(Path::toFile)
-                .forEach(file -> {
+
+    /** @return número de páginas del PDF resultante */
+    public static int merge(List<Path> inputs, Path output) throws IOException {
+        return merge(inputs, output, ProgressListener.NONE);
+    }
+
+    public static int merge(List<Path> inputs, Path output, ProgressListener progress) throws IOException {
+        if (inputs.isEmpty()) {
+            throw new PdfToolException("No hay archivos PDF que unir.");
+        }
+        for (Path input : inputs) {
+            if (!Files.isRegularFile(input)) {
+                throw new PdfToolException("No existe el archivo «" + input + "».");
+            }
+        }
+        try (SafeOutput out = SafeOutput.to(output)) {
+            int pages;
+            List<PDDocument> sources = new ArrayList<>();
+            try (PDDocument merged = new PDDocument()) {
+                PDFMergerUtility merger = new PDFMergerUtility();
+                for (int i = 0; i < inputs.size(); i++) {
+                    Path input = inputs.get(i);
+                    PDDocument source = Pdfs.open(input);
+                    sources.add(source);
+                    Pdfs.requireFullAccess(source, input);
                     try {
-                        mu.addSource(file);
-                    } catch (FileNotFoundException e) {
-                        System.err.println("No se pudo añadir el archivo: " + file.getAbsolutePath());
+                        merger.appendDocument(merged, source);
+                    } catch (IOException | RuntimeException e) {
+                        throw new PdfToolException("No se ha podido añadir «" + Pdfs.name(input) + "»: "
+                                + ErrorMessages.describe(e), e);
                     }
-                });
-        mu.mergeDocuments(null);
+                    progress.update(i + 1, inputs.size());
+                }
+                pages = merged.getNumberOfPages();
+                // los originales deben seguir abiertos hasta guardar: el resultado comparte sus recursos
+                out.save(merged);
+            } finally {
+                Pdfs.closeAll(sources);
+            }
+            out.commit();
+            return pages;
+        }
     }
 
     // SPLIT por rangos (crea <prefix>_partNNN.pdf)
-    public static void splitByRanges(Path input, Path prefix, List<CliUtil.PageRange> ranges) throws IOException {
-        Files.createDirectories(prefix.toAbsolutePath().getParent());
-        try (PDDocument src = Loader.loadPDF(Files.readAllBytes(input))) {
-            final int total = src.getNumberOfPages();
-            AtomicInteger part = new AtomicInteger(1);
-            ranges.stream()
-                    .map(r -> new int[]{Math.max(1, r.start()), Math.min(total, r.end() == Integer.MAX_VALUE ? total : r.end())})
-                    .filter(b -> b[0] <= b[1])
-                    .forEach(b -> {
-                        try (PDDocument out = new PDDocument()) {
-                            IntStream.rangeClosed(b[0], b[1])
-                                    .map(i -> i - 1)
-                                    .mapToObj(src::getPage)
-                                    .forEach(out::addPage);
-                            out.save(numbered(prefix, part.getAndIncrement()).toString());
+    public static List<Path> splitByRanges(Path input, Path prefix, List<CliUtil.PageRange> ranges) throws IOException {
+        return splitByRanges(input, prefix, ranges, ProgressListener.NONE);
+    }
 
-                        } catch (IOException e) {
-                            throw new UncheckedIOException(e);
-                        }
-                    });
+    public static List<Path> splitByRanges(Path input, Path prefix, List<CliUtil.PageRange> ranges,
+                                           ProgressListener progress) throws IOException {
+        if (ranges.isEmpty()) {
+            throw new IllegalArgumentException("Indica al menos un rango de páginas.");
+        }
+        return split(input, prefix, total -> {
+            List<int[]> bounds = new ArrayList<>();
+            for (CliUtil.PageRange r : ranges) {
+                int end = Math.min(r.end(), total);
+                if (r.start() <= end) {
+                    bounds.add(new int[]{r.start(), end});
+                }
+            }
+            return bounds;
+        }, progress);
+    }
 
-        } catch (UncheckedIOException e) {
-            throw e.getCause();
+    /** Divide en partes de {@code pagesPerPart} páginas (la última puede tener menos). */
+    public static List<Path> splitEvery(Path input, Path prefix, int pagesPerPart, ProgressListener progress)
+            throws IOException {
+        if (pagesPerPart < 1) {
+            throw new IllegalArgumentException("Cada parte debe tener al menos una página.");
+        }
+        return split(input, prefix, total -> {
+            List<int[]> bounds = new ArrayList<>();
+            for (int start = 1; start <= total; start += pagesPerPart) {
+                bounds.add(new int[]{start, Math.min(total, start + pagesPerPart - 1)});
+            }
+            return bounds;
+        }, progress);
+    }
+
+    private interface PartPlanner {
+        List<int[]> plan(int totalPages);
+    }
+
+    private static List<Path> split(Path input, Path prefix, PartPlanner planner, ProgressListener progress)
+            throws IOException {
+        Path original = input.toAbsolutePath().normalize();
+        List<SafeOutput> outputs = new ArrayList<>();
+        try {
+            try (PDDocument source = Pdfs.open(input)) {
+                Pdfs.requireFullAccess(source, input);
+                int total = source.getNumberOfPages();
+                List<int[]> parts = planner.plan(total);
+                if (parts.isEmpty()) {
+                    throw new PdfToolException("Ninguno de los rangos indicados existe en el documento (tiene "
+                            + total + " páginas).");
+                }
+                for (int i = 0; i < parts.size(); i++) {
+                    int[] part = parts.get(i);
+                    Path target = numbered(prefix, i + 1);
+                    if (target.toAbsolutePath().normalize().equals(original)) {
+                        throw new PdfToolException("La parte «" + target + "» sobrescribiría el PDF original; usa otro prefijo.");
+                    }
+                    SafeOutput out = SafeOutput.to(target);
+                    outputs.add(out);
+                    Splitter splitter = new Splitter();
+                    splitter.setStartPage(part[0]);
+                    splitter.setEndPage(part[1]);
+                    splitter.setSplitAtPage(part[1] - part[0] + 1);
+                    List<PDDocument> docs = splitter.split(source);
+                    try {
+                        out.save(docs.get(0));
+                    } finally {
+                        Pdfs.closeAll(docs);
+                    }
+                    progress.update(i + 1, parts.size());
+                }
+            }
+            SafeOutput.commitAll(outputs);
+            return outputs.stream().map(SafeOutput::target).toList();
+        } finally {
+            SafeOutput.closeAll(outputs);
         }
     }
 
-    // COMPRESS: recomprime imágenes con JPEG calidad configurable; opcional reducción simple de DPI y limpieza de metadatos
-    public static void compress(Path input, Path output, double jpegQuality, Integer maxDpi, boolean removeMetadata) throws IOException {
-        Files.createDirectories(output.toAbsolutePath().getParent());
-        try (PDDocument doc = Loader.loadPDF(Files.readAllBytes(input))) {
-            if (removeMetadata) {
-                Optional.ofNullable(doc.getDocumentInformation()).ifPresent(info -> info.getCOSObject().clear());
-                Optional.ofNullable(doc.getDocumentCatalog()).ifPresent(catalog -> catalog.setMetadata(null));
-            }
+    // EXTRAER / ELIMINAR PÁGINAS
 
-            streamPages(doc).forEach(page -> {
-                PDResources resources = page.getResources();
-                if (resources == null) return;
-
-                StreamSupport.stream(resources.getXObjectNames().spliterator(), false)
-                        .map(name -> Map.entry(name, safeGetXObject(resources, name)))
-                        .filter(e -> e.getValue() instanceof PDImageXObject)
-                        .map(e -> Map.entry(e.getKey(), (PDImageXObject) e.getValue()))
-                        .forEach(e -> {
-                            try {
-                                PDImageXObject ximg = e.getValue();
-                                BufferedImage bi = ximg.getImage();
-                                if (bi == null) return;
-
-                                // Evita recomprimir si hay alpha (opción: aplanar a blanco)
-                                if (bi.getColorModel().hasAlpha()) {
-                                    // O bien: bi = flattenToColor(bi, Color.WHITE);
-                                    return; // Saltamos para evitar artefactos
-                                }
-
-                                // Reducción según maxDpi (heurística)
-                                BufferedImage processed = Optional.ofNullable(maxDpi)
-                                        .filter(dpi -> dpi > 0)
-                                        .map(dpi -> resizeHeuristic(bi, Math.min(1.0, dpi / 300.0)))
-                                        .orElse(bi);
-
-                                // Crear JPEG XObject correctamente con PDFBox
-                                float q = (float) Math.max(0.1, Math.min(1.0, jpegQuality));
-                                PDImageXObject newImg = JPEGFactory
-                                        .createFromImage(doc, processed, q);
-
-                                resources.put(e.getKey(), newImg);
-                            } catch (IOException ex) {
-                                throw new UncheckedIOException(ex);
-                            }
-                        });
-            });
-            doc.save(output.toString());
-        } catch (UncheckedIOException e) {
-            throw e.getCause();
+    /**
+     * Crea un PDF solo con las páginas indicadas, en el orden en que se escriben (p. ej. {@code "5,1-3"}).
+     *
+     * @return número de páginas del resultado
+     */
+    public static int extractPages(Path input, Path output, List<CliUtil.PageRange> ranges) throws IOException {
+        if (ranges.isEmpty()) {
+            throw new IllegalArgumentException("Indica qué páginas quieres extraer.");
         }
+        return selectPages(input, output, total -> {
+            List<Integer> pages = CliUtil.resolvePages(ranges, total);
+            if (pages.isEmpty()) {
+                throw new PdfToolException("Ninguna de las páginas indicadas existe (el documento tiene " + total + " páginas).");
+            }
+            return pages;
+        });
+    }
+
+    /** @return número de páginas que quedan */
+    public static int deletePages(Path input, Path output, List<CliUtil.PageRange> ranges) throws IOException {
+        if (ranges.isEmpty()) {
+            throw new IllegalArgumentException("Indica qué páginas quieres eliminar.");
+        }
+        return selectPages(input, output, total -> {
+            Set<Integer> remove = new HashSet<>(CliUtil.resolvePages(ranges, total));
+            if (remove.isEmpty()) {
+                throw new PdfToolException("Ninguna de las páginas indicadas existe (el documento tiene " + total + " páginas).");
+            }
+            List<Integer> keep = new ArrayList<>();
+            for (int page = 1; page <= total; page++) {
+                if (!remove.contains(page)) keep.add(page);
+            }
+            if (keep.isEmpty()) {
+                throw new PdfToolException("No se pueden eliminar todas las páginas del documento.");
+            }
+            return keep;
+        });
+    }
+
+    private interface PageChooser {
+        List<Integer> choose(int totalPages) throws IOException;
+    }
+
+    private static int selectPages(Path input, Path output, PageChooser chooser) throws IOException {
+        try (SafeOutput out = SafeOutput.to(output)) {
+            int pages;
+            try (PDDocument source = Pdfs.open(input)) {
+                Pdfs.requireFullAccess(source, input);
+                List<Integer> selection = chooser.choose(source.getNumberOfPages());
+                try (PDDocument selected = PageSelector.select(source, selection)) {
+                    pages = selected.getNumberOfPages();
+                    out.save(selected);
+                }
+            }
+            out.commit();
+            return pages;
+        }
+    }
+
+    // COMPRESS: recomprime imágenes con JPEG calidad configurable; opcional reducción de DPI y limpieza de metadatos
+    public static CompressResult compress(Path input, Path output, double jpegQuality, Integer maxDpi,
+                                          boolean removeMetadata) throws IOException {
+        return compress(input, output, jpegQuality, maxDpi, removeMetadata, ProgressListener.NONE);
+    }
+
+    public static CompressResult compress(Path input, Path output, double jpegQuality, Integer maxDpi,
+                                          boolean removeMetadata, ProgressListener progress) throws IOException {
+        if (!(jpegQuality >= 0.1 && jpegQuality <= 1.0)) {
+            throw new IllegalArgumentException("La calidad JPEG debe estar entre 0,1 y 1.");
+        }
+        if (maxDpi != null && maxDpi < 36) {
+            throw new IllegalArgumentException("El DPI máximo debe ser al menos 36.");
+        }
+        long before = Files.size(input);
+        ImageRecompressor.Result images;
+        try (SafeOutput out = SafeOutput.to(output)) {
+            try (PDDocument doc = Pdfs.open(input)) {
+                Pdfs.requireFullAccess(doc, input);
+                if (removeMetadata) {
+                    doc.setDocumentInformation(new PDDocumentInformation());
+                    doc.getDocumentCatalog().setMetadata(null);
+                }
+                images = ImageRecompressor.recompress(doc, jpegQuality, maxDpi, progress);
+                out.save(doc);
+            }
+            out.commit();
+        }
+        return new CompressResult(before, Files.size(output), images.imagesFound(), images.imagesRecompressed());
     }
 
     // ROTATE
-    public static void rotate(Path input, Path output, int degrees, List<CliUtil.PageRange> ranges) throws IOException {
-        Files.createDirectories(output.toAbsolutePath().getParent());
-        try (PDDocument doc = Loader.loadPDF(Files.readAllBytes(input))) {
-            IntStream.rangeClosed(1, doc.getNumberOfPages())
-                    .filter(i -> CliUtil.containsPage(ranges, i))
-                    .forEach(i -> {
-                        PDPage page = doc.getPage(i - 1);
-                        int r = Optional.of(page.getRotation()).orElse(0);
-                        page.setRotation((r + degrees) % 360);
-                    });
-            doc.save(output.toString());
+
+    /** @return número de páginas giradas */
+    public static int rotate(Path input, Path output, int degrees, List<CliUtil.PageRange> ranges) throws IOException {
+        if (degrees % 90 != 0) {
+            throw new IllegalArgumentException("El giro debe ser múltiplo de 90 grados (90, 180, 270…): " + degrees);
+        }
+        List<CliUtil.PageRange> pages = ranges.isEmpty() ? List.of(CliUtil.PageRange.ALL) : ranges;
+        try (SafeOutput out = SafeOutput.to(output)) {
+            int rotated = 0;
+            try (PDDocument doc = Pdfs.open(input)) {
+                Pdfs.requireFullAccess(doc, input);
+                int number = 0;
+                for (PDPage page : doc.getPages()) {
+                    number++;
+                    if (CliUtil.containsPage(pages, number)) {
+                        page.setRotation(Math.floorMod(page.getRotation() + degrees, 360));
+                        rotated++;
+                    }
+                }
+                if (rotated == 0) {
+                    throw new PdfToolException("Ninguna de las páginas indicadas existe (el documento tiene "
+                            + number + " páginas).");
+                }
+                out.save(doc);
+            }
+            out.commit();
+            return rotated;
         }
     }
 
-
-    // WATERMARK (texto centrado y rotado con opacidad)
+    // WATERMARK (texto centrado y girado 45° con opacidad)
     public static void watermarkText(Path input, Path output, String text, float opacity) throws IOException {
-        Files.createDirectories(output.toAbsolutePath().getParent());
-        try (PDDocument doc = Loader.loadPDF(Files.readAllBytes(input))) {
-            streamPages(doc).forEach(page -> {
-                var media = page.getMediaBox();
-                try (PDPageContentStream cs = new PDPageContentStream(doc, page, PDPageContentStream.AppendMode.APPEND, true, true)) {
+        watermarkText(input, output, text, opacity, DEFAULT_WATERMARK_COLOR, ProgressListener.NONE);
+    }
 
-                    // Opacidad
-                    PDExtendedGraphicsState gs = new PDExtendedGraphicsState();
-                    gs.setNonStrokingAlphaConstant(opacity); // transparencia para el relleno
-                    var res = Optional.ofNullable(page.getResources()).orElseGet(PDResources::new);
-                    page.setResources(res);
-                    COSName gsName = COSName.getPDFName("GS_WM");
-                    res.put(gsName, gs);
-                    cs.setGraphicsStateParameters(gs);
+    public static void watermarkText(Path input, Path output, String text, float opacity, Color color,
+                                     ProgressListener progress) throws IOException {
+        if (text == null || text.isBlank()) {
+            throw new IllegalArgumentException("El texto de la marca de agua no puede estar vacío.");
+        }
+        if (!(opacity > 0 && opacity <= 1)) {
+            throw new IllegalArgumentException("La opacidad debe estar entre 0 (sin incluir) y 1.");
+        }
+        try (SafeOutput out = SafeOutput.to(output)) {
+            try (PDDocument doc = Pdfs.open(input)) {
+                Pdfs.requireFullAccess(doc, input);
+                PageStamper.watermark(doc, text.strip(), opacity, color == null ? DEFAULT_WATERMARK_COLOR : color, progress);
+                out.save(doc);
+            }
+            out.commit();
+        }
+    }
 
-                    // Fuente y estilo
-                    PDFont font = new PDType1Font(Standard14Fonts.FontName.HELVETICA_BOLD);
-                    float fontSize = 64f;
-                    cs.setFont(font, fontSize);
-                    cs.setNonStrokingColor(new Color(200, 0, 0));
+    // NUMERAR PÁGINAS
 
-                    // Medidas del texto
-                    float textWidth = (font.getStringWidth(text) / 1000f) * fontSize;
-                    // Altura preferible: cap-height; fallback a bbox si no está
-                    float textHeight = Optional.ofNullable(font.getFontDescriptor())
-                            .map(fd -> fd.getCapHeight() / 1000f * fontSize)
-                            .orElseGet(() -> {
-                                try {
-                                    return (font.getBoundingBox().getHeight() / 1000f) * fontSize;
-                                } catch (IOException e) {
-                                    throw new RuntimeException(e);
-                                }
-                            });
-
-                    // Centro de la página
-                    float cx = media.getWidth() / 2f;
-                    float cy = media.getHeight() / 2f;
-
-                    // Rotación (45º por defecto; hazlo parámetro si quieres)
-                    double angle = Math.toRadians(45);
-
-                    // Coloca el origen del texto en el centro, rota ahí, y compensa medio ancho/alto
-                    cs.beginText();
-                    cs.setTextMatrix(Matrix.getRotateInstance(angle, cx, cy));
-                    cs.newLineAtOffset(-textWidth / 2f, -textHeight / 2f);
-                    cs.showText(text);
-                    cs.endText();
-
-
-                } catch (IOException e) {
-                    throw new UncheckedIOException(e);
-                }
-            });
-            doc.save(output.toString());
-        } catch (UncheckedIOException e) {
-            throw e.getCause();
+    /** @return número de páginas numeradas */
+    public static int addPageNumbers(Path input, Path output, PageNumberOptions options, ProgressListener progress)
+            throws IOException {
+        try (SafeOutput out = SafeOutput.to(output)) {
+            int numbered;
+            try (PDDocument doc = Pdfs.open(input)) {
+                Pdfs.requireFullAccess(doc, input);
+                numbered = PageStamper.pageNumbers(doc, options, progress);
+                out.save(doc);
+            }
+            out.commit();
+            return numbered;
         }
     }
 
     // EXTRAER TEXTO
+    public static String readText(Path input, ProgressListener progress) throws IOException {
+        try (PDDocument doc = Pdfs.open(input)) {
+            Pdfs.requireCopyPermission(doc, input);
+            int total = doc.getNumberOfPages();
+            PDFTextStripper stripper = new PDFTextStripper() {
+                @Override
+                protected void endPage(PDPage page) throws IOException {
+                    super.endPage(page);
+                    progress.update(getCurrentPageNo(), total);
+                }
+            };
+            return stripper.getText(doc);
+        }
+    }
+
     public static void extractText(Path input, Path outTxt) throws IOException {
-        try (PDDocument doc = Loader.loadPDF(Files.readAllBytes(input))) {
-            String text = new PDFTextStripper().getText(doc);
-            Optional.ofNullable(outTxt)
-                    .ifPresentOrElse(p -> {
-                        try {
-                            Files.createDirectories(p.toAbsolutePath().getParent());
-                            Files.writeString(p, text);
-                        } catch (IOException e) {
-                            throw new UncheckedIOException(e);
-                        }
-                    }, () -> System.out.println(text));
-        } catch (UncheckedIOException e) {
-            throw e.getCause();
+        String text = readText(input, ProgressListener.NONE);
+        if (outTxt == null) {
+            System.out.println(text);
+            return;
+        }
+        saveText(text, outTxt);
+    }
+
+    /** Guarda texto en UTF-8 sin dejar archivos a medias. */
+    public static void saveText(String text, Path outTxt) throws IOException {
+        try (SafeOutput out = SafeOutput.to(outTxt)) {
+            out.write(os -> os.write(text.getBytes(StandardCharsets.UTF_8)));
+            out.commit();
         }
     }
 
     // INFO
+    public static PdfInfo info(Path input) throws IOException {
+        try (PDDocument doc = Pdfs.open(input)) {
+            long size = Files.size(input);
+            PDDocumentInformation info = doc.getDocumentInformation();
+            float width = 0;
+            float height = 0;
+            if (doc.getNumberOfPages() > 0) {
+                PageGeometry.Visual first = PageGeometry.of(doc.getPage(0));
+                width = first.width();
+                height = first.height();
+            }
+            return new PdfInfo(size, doc.getNumberOfPages(),
+                    String.format(Locale.ROOT, "%.1f", doc.getVersion()),
+                    doc.isEncrypted(),
+                    doc.isEncrypted() ? PdfPermission.granted(doc.getCurrentAccessPermission()) : null,
+                    width, height,
+                    MetadataSupport.read(doc),
+                    blankToNull(info.getCreator()), blankToNull(info.getProducer()),
+                    toZoned(info.getCreationDate()), toZoned(info.getModificationDate()));
+        }
+    }
+
+    /** @return número de páginas, o lanza error si el PDF no se puede abrir */
+    public static int pageCount(Path input) throws IOException {
+        try (PDDocument doc = Pdfs.open(input)) {
+            return doc.getNumberOfPages();
+        }
+    }
+
     public static void printInfo(Path input) throws IOException {
-        try (PDDocument doc = Loader.loadPDF(Files.readAllBytes(input))) {
-            var info = doc.getDocumentInformation();
-            System.out.println("Páginas: " + doc.getNumberOfPages());
-            Optional.ofNullable(info).ifPresent(i -> Stream.of(
-                            Map.entry("Título", i.getTitle()),
-                            Map.entry("Autor", i.getAuthor()),
-                            Map.entry("Asunto", i.getSubject()),
-                            Map.entry("Palabras clave", i.getKeywords()),
-                            Map.entry("Productor", i.getProducer()),
-                            Map.entry("Creador", i.getCreator())
-                    ).filter(e -> e.getValue() != null && !e.getValue().isBlank())
-                    .forEach(e -> System.out.println(e.getKey() + ": " + e.getValue())));
+        PdfInfo info = info(input);
+        System.out.println("Páginas: " + info.pages());
+        DocumentMetadata md = info.metadata();
+        Stream.of(
+                        Map.entry("Título", Optional.ofNullable(md.title())),
+                        Map.entry("Autor", Optional.ofNullable(md.author())),
+                        Map.entry("Asunto", Optional.ofNullable(md.subject())),
+                        Map.entry("Palabras clave", Optional.ofNullable(md.keywords())),
+                        Map.entry("Productor", Optional.ofNullable(info.producer())),
+                        Map.entry("Creador", Optional.ofNullable(info.creator()))
+                ).filter(e -> e.getValue().isPresent())
+                .forEach(e -> System.out.println(e.getKey() + ": " + e.getValue().get()));
+    }
+
+    // METADATOS
+
+    /**
+     * @return {@code false} si el PDF tenía metadatos XMP ilegibles que se han dejado sin tocar (el resto sí se
+     * actualiza)
+     */
+    public static boolean updateMetadata(Path input, Path output, DocumentMetadata metadata) throws IOException {
+        try (SafeOutput out = SafeOutput.to(output)) {
+            boolean complete;
+            try (PDDocument doc = Pdfs.open(input)) {
+                Pdfs.requireFullAccess(doc, input);
+                complete = MetadataSupport.write(doc, metadata);
+                out.save(doc);
+            }
+            out.commit();
+            return complete;
         }
     }
 
     // ENCRYPT
-    public static void encrypt(Path input, Path output, String ownerPwd, String userPwd, Set<String> perms) throws IOException {
-        Files.createDirectories(output.toAbsolutePath().getParent());
-        try (PDDocument doc = Loader.loadPDF(Files.readAllBytes(input))) {
-            AccessPermission ap = new AccessPermission();
-            ap.setCanPrint(perms.contains("print"));
-            ap.setCanExtractContent(perms.contains("copy"));
-            ap.setCanModify(perms.contains("modify"));
-            StandardProtectionPolicy spp = new StandardProtectionPolicy(ownerPwd, userPwd, ap);
-            spp.setEncryptionKeyLength(128);
-            doc.protect(spp);
-            doc.save(output.toString());
+    public static void encrypt(Path input, Path output, String ownerPwd, String userPwd, Set<PdfPermission> perms)
+            throws IOException {
+        if (ownerPwd == null || ownerPwd.isEmpty()) {
+            throw new IllegalArgumentException("Debes indicar la contraseña de propietario.");
+        }
+        String user = userPwd == null ? "" : userPwd;
+        if (user.equals(ownerPwd)) {
+            throw new IllegalArgumentException("La contraseña de propietario debe ser distinta de la de apertura; "
+                    + "si no, cualquiera que abra el PDF tendría todos los permisos.");
+        }
+        try (SafeOutput out = SafeOutput.to(output)) {
+            try (PDDocument doc = Pdfs.open(input)) {
+                if (doc.isEncrypted()) {
+                    throw new PdfToolException("«" + Pdfs.name(input) + "» ya está protegido. "
+                            + "Quita primero la protección con «Quitar contraseña».");
+                }
+                StandardProtectionPolicy policy =
+                        new StandardProtectionPolicy(ownerPwd, user, PdfPermission.toAccessPermission(perms));
+                policy.setEncryptionKeyLength(256); // AES-256
+                doc.protect(policy);
+                out.save(doc);
+            }
+            out.commit();
         }
     }
 
     // DECRYPT
     public static void decrypt(Path input, Path output, String password) throws IOException {
-        Files.createDirectories(output.toAbsolutePath().getParent());
-        try (PDDocument doc = Loader.loadPDF(Files.readAllBytes(input), password)) {
-            doc.setAllSecurityToBeRemoved(true);
-            doc.save(output.toString());
+        try (SafeOutput out = SafeOutput.to(output)) {
+            try (PDDocument doc = Pdfs.open(input, password == null ? "" : password)) {
+                if (!doc.isEncrypted()) {
+                    throw new PdfToolException("«" + Pdfs.name(input) + "» no está protegido: no hay nada que quitar.");
+                }
+                if (!doc.getCurrentAccessPermission().isOwnerPermission()) {
+                    throw new PdfToolException("Esa contraseña solo permite abrir «" + Pdfs.name(input)
+                            + "». Para quitar la protección hace falta la contraseña de propietario.");
+                }
+                doc.setAllSecurityToBeRemoved(true);
+                out.save(doc);
+            }
+            out.commit();
         }
     }
 
-    // Helpers funcionales
-    private static Stream<PDPage> streamPages(PDDocument doc) {
-        return IntStream.range(0, doc.getNumberOfPages()).mapToObj(doc::getPage);
+    // IMÁGENES → PDF
+
+    /** @return número de páginas creadas (una por imagen) */
+    public static int imagesToPdf(List<Path> images, Path output, ImagePageSize size, float marginPt,
+                                  ProgressListener progress) throws IOException {
+        if (images.isEmpty()) {
+            throw new PdfToolException("No hay imágenes que convertir.");
+        }
+        if (marginPt < 0) {
+            throw new IllegalArgumentException("El margen no puede ser negativo.");
+        }
+        try (SafeOutput out = SafeOutput.to(output)) {
+            try (PDDocument doc = new PDDocument()) {
+                for (int i = 0; i < images.size(); i++) {
+                    ImageConversion.addImagePage(doc, images.get(i), size, marginPt);
+                    progress.update(i + 1, images.size());
+                }
+                out.save(doc);
+            }
+            out.commit();
+        }
+        return images.size();
     }
 
+    // PDF → IMÁGENES
+
+    /** Exporta cada página como {@code <baseName>_NNN.png|jpg} en {@code outputDir}. */
+    public static List<Path> pdfToImages(Path input, Path outputDir, String baseName, ImageFormat format, int dpi,
+                                         List<CliUtil.PageRange> ranges, ProgressListener progress) throws IOException {
+        if (dpi < 36 || dpi > 600) {
+            throw new IllegalArgumentException("La resolución debe estar entre 36 y 600 ppp.");
+        }
+        if (baseName == null || baseName.isBlank() || baseName.matches(".*[\\\\/:*?\"<>|].*")) {
+            throw new IllegalArgumentException("El nombre base de las imágenes no es válido: «" + baseName + "».");
+        }
+        List<SafeOutput> outputs = new ArrayList<>();
+        try {
+            try (PDDocument doc = Pdfs.open(input)) {
+                Pdfs.requireCopyPermission(doc, input);
+                int total = doc.getNumberOfPages();
+                List<Integer> pages = CliUtil.resolvePages(ranges, total);
+                if (pages.isEmpty()) {
+                    throw new PdfToolException("Ninguna de las páginas indicadas existe (el documento tiene " + total + " páginas).");
+                }
+                PDFRenderer renderer = new PDFRenderer(doc);
+                String pattern = "%s_%0" + Math.max(3, String.valueOf(total).length()) + "d.%s";
+                for (int i = 0; i < pages.size(); i++) {
+                    int page = pages.get(i);
+                    BufferedImage image = renderer.renderImageWithDPI(page - 1, dpi, ImageType.RGB);
+                    SafeOutput out = SafeOutput.to(outputDir.resolve(
+                            String.format(Locale.ROOT, pattern, baseName.strip(), page, format.extension())));
+                    outputs.add(out);
+                    out.write(os -> ImageConversion.writeImage(image, format, os));
+                    progress.update(i + 1, pages.size());
+                }
+            }
+            SafeOutput.commitAll(outputs);
+            return outputs.stream().map(SafeOutput::target).toList();
+        } finally {
+            SafeOutput.closeAll(outputs);
+        }
+    }
+
+    // Helpers
     private static Path numbered(Path prefix, int idx) {
         String base = prefix.getFileName().toString();
         Path parent = Optional.ofNullable(prefix.getParent()).orElse(Path.of("."));
         return parent.resolve(String.format(Locale.ROOT, "%s_part%03d.pdf", base, idx));
     }
 
-    private static Object safeGetXObject(PDResources res, COSName name) {
-        try {
-            return res.getXObject(name);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+    private static String blankToNull(String value) {
+        return value == null || value.isBlank() ? null : value.strip();
     }
 
-    private static BufferedImage resizeHeuristic(BufferedImage src, double scale) {
-        // scale en (0,1] => reducir; >=1 => mantener o ampliar (no recomendado)
-        if (scale >= 1.0) return src; // no escalar al alza aquí
-        int w = Math.max(1, (int) Math.round(src.getWidth() * scale));
-        int h = Math.max(1, (int) Math.round(src.getHeight() * scale));
-        BufferedImage dst = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
-        Graphics2D g = dst.createGraphics();
-        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-        g.drawImage(src, 0, 0, w, h, null);
-        g.dispose();
-        return dst;
-    }
-
-    private static byte[] encodeJpeg(BufferedImage img, float quality) throws IOException {
-        ImageWriter writer = ImageIO.getImageWritersByFormatName("jpeg").next();
-        ImageWriteParam param = writer.getDefaultWriteParam();
-        param.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
-        param.setCompressionQuality(quality);
-        try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
-             MemoryCacheImageOutputStream ios = new MemoryCacheImageOutputStream(bos)) {
-            writer.setOutput(ios);
-            writer.write(null, new IIOImage(img, null, null), param);
-            writer.dispose();
-            return bos.toByteArray();
-        }
-    }
-
-    private static PDImageXObject createJpegXObject(PDDocument doc, byte[] jpegBytes) throws IOException {
-        // Crear un PDStream a partir de los datos JPEG
-        PDStream stream = new PDStream(doc, new ByteArrayInputStream(jpegBytes));
-
-        // Configurar las propiedades del flujo (indicar que es una imagen con compresión DCT/JPEG)
-        stream.getCOSObject().setItem(COSName.SUBTYPE, COSName.IMAGE);
-        stream.getCOSObject().setItem(COSName.FILTER, COSName.DCT_DECODE);
-
-        // Crear un recurso (PDResources) asociado para gestionarlo
-        PDResources resources = new PDResources();
-
-        // Crear el PDImageXObject con el stream y los recursos correctos
-        return new PDImageXObject(stream, resources);
+    private static ZonedDateTime toZoned(Calendar calendar) {
+        if (calendar == null) return null;
+        return calendar instanceof GregorianCalendar gregorian
+                ? gregorian.toZonedDateTime()
+                : calendar.toInstant().atZone(ZoneId.systemDefault());
     }
 }
-
