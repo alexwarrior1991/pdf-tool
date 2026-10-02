@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.control.ToggleGroup?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<!--
+  Ventana principal. Cada botón de la barra lateral lleva en userData el nombre del FXML de su pantalla
+  (merge → merge.fxml…); las tarjetas de inicio usan el mismo identificador.
+-->
+<BorderPane styleClass="app-root" stylesheets="@app.css" xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.alejandro.pdftool.gui.MainController">
+    <fx:define>
+        <ToggleGroup fx:id="navigation"/>
+    </fx:define>
+    <left>
+        <VBox prefWidth="240" styleClass="sidebar">
+            <VBox spacing="2" styleClass="brand">
+                <Label styleClass="brand-title" text="PDF Tool"/>
+                <Label styleClass="brand-subtitle" text="Tus PDF, sin complicaciones" wrapText="true"/>
+            </VBox>
+            <ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="sidebar-scroll" VBox.vgrow="ALWAYS">
+                <VBox spacing="2" styleClass="nav">
+                    <ToggleButton maxWidth="Infinity" mnemonicParsing="false" selected="true" styleClass="nav-button"
+                                  text="Inicio" toggleGroup="$navigation" userData="home"/>
+                    <Label styleClass="nav-section" text="ORGANIZAR"/>
+                    <ToggleButton maxWidth="Infinity" mnemonicParsing="false" styleClass="nav-button" text="Unir PDF"
+                                  toggleGroup="$navigation" userData="merge"/>
+                    <ToggleButton maxWidth="Infinity" mnemonicParsing="false" styleClass="nav-button" text="Dividir PDF"
+                                  toggleGroup="$navigation" userData="split"/>
+                    <ToggleButton maxWidth="Infinity" mnemonicParsing="false" styleClass="nav-button"
+                                  text="Extraer o eliminar páginas" toggleGroup="$navigation" userData="pages"/>
+                    <ToggleButton maxWidth="Infinity" mnemonicParsing="false" styleClass="nav-button"
+                                  text="Rotar páginas" toggleGroup="$navigation" userData="rotate"/>
+                    <Label styleClass="nav-section" text="CONVERTIR"/>
+                    <ToggleButton maxWidth="Infinity" mnemonicParsing="false" styleClass="nav-button"
+                                  text="Imágenes a PDF" toggleGroup="$navigation" userData="images-to-pdf"/>
+                    <ToggleButton maxWidth="Infinity" mnemonicParsing="false" styleClass="nav-button"
+                                  text="PDF a imágenes" toggleGroup="$navigation" userData="pdf-to-images"/>
+                    <ToggleButton maxWidth="Infinity" mnemonicParsing="false" styleClass="nav-button"
+                                  text="Extraer texto" toggleGroup="$navigation" userData="text"/>
+                    <Label styleClass="nav-section" text="EDITAR"/>
+                    <ToggleButton maxWidth="Infinity" mnemonicParsing="false" styleClass="nav-button" text="Comprimir"
+                                  toggleGroup="$navigation" userData="compress"/>
+                    <ToggleButton maxWidth="Infinity" mnemonicParsing="false" styleClass="nav-button"
+                                  text="Marca de agua" toggleGroup="$navigation" userData="watermark"/>
+                    <ToggleButton maxWidth="Infinity" mnemonicParsing="false" styleClass="nav-button"
+                                  text="Numerar páginas" toggleGroup="$navigation" userData="page-numbers"/>
+                    <Label styleClass="nav-section" text="SEGURIDAD"/>
+                    <ToggleButton maxWidth="Infinity" mnemonicParsing="false" styleClass="nav-button"
+                                  text="Proteger con contraseña" toggleGroup="$navigation" userData="encrypt"/>
+                    <ToggleButton maxWidth="Infinity" mnemonicParsing="false" styleClass="nav-button"
+                                  text="Quitar contraseña" toggleGroup="$navigation" userData="decrypt"/>
+                    <Label styleClass="nav-section" text="DOCUMENTO"/>
+                    <ToggleButton maxWidth="Infinity" mnemonicParsing="false" styleClass="nav-button"
+                                  text="Información y metadatos" toggleGroup="$navigation" userData="info"/>
+                </VBox>
+            </ScrollPane>
+        </VBox>
+    </left>
+    <center>
+        <StackPane fx:id="content" styleClass="content">
+            <ScrollPane fx:id="home" fitToWidth="true" styleClass="page-scroll">
+                <VBox spacing="16" styleClass="page">
+                    <VBox spacing="4">
+                        <Label styleClass="view-title" text="¿Qué quieres hacer?"/>
+                        <Label styleClass="view-description" wrapText="true"
+                               text="Elige una herramienta. En cada pantalla puedes arrastrar los archivos directamente o pulsar «Examinar…». El archivo original nunca se modifica salvo que elijas sobrescribirlo."/>
+                    </VBox>
+
+                    <Label styleClass="home-section" text="Organizar"/>
+                    <FlowPane hgap="14" rowValignment="TOP" vgap="14">
+                        <VBox onMouseClicked="#openCard" spacing="4" styleClass="home-card" userData="merge">
+                            <Label maxWidth="Infinity" styleClass="home-card-title" text="Unir PDF" wrapText="true"/>
+                            <Label maxWidth="Infinity" styleClass="home-card-text" text="Combina varios PDF (o carpetas enteras) en uno, en el orden que elijas." wrapText="true"/>
+                        </VBox>
+                        <VBox onMouseClicked="#openCard" spacing="4" styleClass="home-card" userData="split">
+                            <Label maxWidth="Infinity" styleClass="home-card-title" text="Dividir PDF" wrapText="true"/>
+                            <Label maxWidth="Infinity" styleClass="home-card-text" text="Separa un PDF por rangos de páginas o en partes de N páginas." wrapText="true"/>
+                        </VBox>
+                        <VBox onMouseClicked="#openCard" spacing="4" styleClass="home-card" userData="pages">
+                            <Label maxWidth="Infinity" styleClass="home-card-title" text="Extraer o eliminar páginas" wrapText="true"/>
+                            <Label maxWidth="Infinity" styleClass="home-card-text" text="Quédate solo con las páginas que necesitas, en el orden que quieras, o quita las que sobran." wrapText="true"/>
+                        </VBox>
+                        <VBox onMouseClicked="#openCard" spacing="4" styleClass="home-card" userData="rotate">
+                            <Label maxWidth="Infinity" styleClass="home-card-title" text="Rotar páginas" wrapText="true"/>
+                            <Label maxWidth="Infinity" styleClass="home-card-text" text="Endereza páginas escaneadas del revés o de lado." wrapText="true"/>
+                        </VBox>
+                    </FlowPane>
+
+                    <Label styleClass="home-section" text="Convertir"/>
+                    <FlowPane hgap="14" rowValignment="TOP" vgap="14">
+                        <VBox onMouseClicked="#openCard" spacing="4" styleClass="home-card" userData="images-to-pdf">
+                            <Label maxWidth="Infinity" styleClass="home-card-title" text="Imágenes a PDF" wrapText="true"/>
+                            <Label maxWidth="Infinity" styleClass="home-card-text" text="Convierte fotos y escaneos (JPG, PNG…) en un único PDF." wrapText="true"/>
+                        </VBox>
+                        <VBox onMouseClicked="#openCard" spacing="4" styleClass="home-card" userData="pdf-to-images">
+                            <Label maxWidth="Infinity" styleClass="home-card-title" text="PDF a imágenes" wrapText="true"/>
+                            <Label maxWidth="Infinity" styleClass="home-card-text" text="Guarda páginas del PDF como imágenes PNG o JPG." wrapText="true"/>
+                        </VBox>
+                        <VBox onMouseClicked="#openCard" spacing="4" styleClass="home-card" userData="text">
+                            <Label maxWidth="Infinity" styleClass="home-card-title" text="Extraer texto" wrapText="true"/>
+                            <Label maxWidth="Infinity" styleClass="home-card-text" text="Copia el texto de un PDF o guárdalo en un archivo .txt." wrapText="true"/>
+                        </VBox>
+                    </FlowPane>
+
+                    <Label styleClass="home-section" text="Editar"/>
+                    <FlowPane hgap="14" rowValignment="TOP" vgap="14">
+                        <VBox onMouseClicked="#openCard" spacing="4" styleClass="home-card" userData="compress">
+                            <Label maxWidth="Infinity" styleClass="home-card-title" text="Comprimir" wrapText="true"/>
+                            <Label maxWidth="Infinity" styleClass="home-card-text" text="Reduce el tamaño recomprimiendo las imágenes del PDF." wrapText="true"/>
+                        </VBox>
+                        <VBox onMouseClicked="#openCard" spacing="4" styleClass="home-card" userData="watermark">
+                            <Label maxWidth="Infinity" styleClass="home-card-title" text="Marca de agua" wrapText="true"/>
+                            <Label maxWidth="Infinity" styleClass="home-card-text" text="Añade un texto en diagonal (BORRADOR, CONFIDENCIAL…) en todas las páginas." wrapText="true"/>
+                        </VBox>
+                        <VBox onMouseClicked="#openCard" spacing="4" styleClass="home-card" userData="page-numbers">
+                            <Label maxWidth="Infinity" styleClass="home-card-title" text="Numerar páginas" wrapText="true"/>
+                            <Label maxWidth="Infinity" styleClass="home-card-text" text="Escribe «Página 1 de 10» (o el formato que quieras) en las páginas." wrapText="true"/>
+                        </VBox>
+                    </FlowPane>
+
+                    <Label styleClass="home-section" text="Seguridad y documento"/>
+                    <FlowPane hgap="14" rowValignment="TOP" vgap="14">
+                        <VBox onMouseClicked="#openCard" spacing="4" styleClass="home-card" userData="encrypt">
+                            <Label maxWidth="Infinity" styleClass="home-card-title" text="Proteger con contraseña" wrapText="true"/>
+                            <Label maxWidth="Infinity" styleClass="home-card-text" text="Cifra el PDF (AES-256) y decide qué se puede hacer con él." wrapText="true"/>
+                        </VBox>
+                        <VBox onMouseClicked="#openCard" spacing="4" styleClass="home-card" userData="decrypt">
+                            <Label maxWidth="Infinity" styleClass="home-card-title" text="Quitar contraseña" wrapText="true"/>
+                            <Label maxWidth="Infinity" styleClass="home-card-text" text="Elimina la protección de un PDF del que conoces la contraseña de propietario." wrapText="true"/>
+                        </VBox>
+                        <VBox onMouseClicked="#openCard" spacing="4" styleClass="home-card" userData="info">
+                            <Label maxWidth="Infinity" styleClass="home-card-title" text="Información y metadatos" wrapText="true"/>
+                            <Label maxWidth="Infinity" styleClass="home-card-text" text="Consulta páginas, tamaño y permisos, y edita título, autor y palabras clave." wrapText="true"/>
+                        </VBox>
+                    </FlowPane>
+                </VBox>
+            </ScrollPane>
+        </StackPane>
+    </center>
+</BorderPane>

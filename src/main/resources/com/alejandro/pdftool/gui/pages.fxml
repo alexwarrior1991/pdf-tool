@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.RadioButton?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToggleGroup?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<ScrollPane fitToWidth="true" styleClass="page-scroll" stylesheets="@app.css" xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.alejandro.pdftool.gui.views.PagesController">
+    <VBox spacing="16" styleClass="page">
+        <fx:define>
+            <ToggleGroup fx:id="mode"/>
+        </fx:define>
+        <VBox spacing="4">
+            <Label styleClass="view-title" text="Extraer o eliminar páginas"/>
+            <Label styleClass="view-description" wrapText="true"
+                   text="Crea un PDF nuevo solo con las páginas que necesitas (en el orden que escribas) o sin las que sobran. El original no se modifica."/>
+        </VBox>
+        <VBox spacing="10" styleClass="section">
+            <Label styleClass="section-label" text="1. PDF"/>
+            <fx:include fx:id="input" source="file-field.fxml"/>
+        </VBox>
+        <VBox spacing="10" styleClass="section">
+            <Label styleClass="section-label" text="2. Elige las páginas"/>
+            <HBox spacing="20">
+                <RadioButton fx:id="keepMode" mnemonicParsing="false" selected="true"
+                             text="Conservar solo estas páginas" toggleGroup="$mode"/>
+                <RadioButton fx:id="deleteMode" mnemonicParsing="false" text="Eliminar estas páginas"
+                             toggleGroup="$mode"/>
+            </HBox>
+            <TextField fx:id="rangesField" promptText="Haz clic en las miniaturas o escribe, p. ej.: 1-3, 7"/>
+            <Label styleClass="field-hint" wrapText="true"
+                   text="Para extraer en otro orden escríbelo así: 5, 1-3 (la página 5 irá primero)."/>
+            <fx:include fx:id="thumbnails" source="thumbnails.fxml"/>
+        </VBox>
+        <VBox spacing="10" styleClass="section">
+            <Label styleClass="section-label" text="3. Dónde guardar el resultado"/>
+            <fx:include fx:id="output" source="file-field.fxml"/>
+            <Label styleClass="field-hint" wrapText="true"
+                   text="Nota: los marcadores (índice) y los formularios rellenables del original no se conservan."/>
+        </VBox>
+        <fx:include fx:id="runBar" source="run-bar.fxml"/>
+    </VBox>
+</ScrollPane>

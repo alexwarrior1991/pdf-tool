@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<ScrollPane fitToWidth="true" styleClass="page-scroll" stylesheets="@app.css" xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.alejandro.pdftool.gui.views.PdfToImagesController">
+    <VBox spacing="16" styleClass="page">
+        <VBox spacing="4">
+            <Label styleClass="view-title" text="PDF a imágenes"/>
+            <Label styleClass="view-description" wrapText="true"
+                   text="Guarda páginas del PDF como imágenes, una por página. Si no marcas ninguna se exportan todas."/>
+        </VBox>
+        <VBox spacing="10" styleClass="section">
+            <Label styleClass="section-label" text="1. PDF y páginas"/>
+            <fx:include fx:id="input" source="file-field.fxml"/>
+            <HBox alignment="CENTER_LEFT" spacing="8">
+                <Label styleClass="field-label" text="Páginas:"/>
+                <TextField fx:id="rangesField" promptText="Todas (o haz clic en las miniaturas / escribe 1-3, 7)"
+                           HBox.hgrow="ALWAYS"/>
+            </HBox>
+            <fx:include fx:id="thumbnails" source="thumbnails.fxml"/>
+        </VBox>
+        <VBox spacing="10" styleClass="section">
+            <Label styleClass="section-label" text="2. Formato"/>
+            <GridPane hgap="12" vgap="10">
+                <columnConstraints>
+                    <ColumnConstraints minWidth="110"/>
+                    <ColumnConstraints hgrow="ALWAYS"/>
+                </columnConstraints>
+                <Label styleClass="field-label" text="Tipo:" GridPane.rowIndex="0"/>
+                <ComboBox fx:id="formatBox" prefWidth="240" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                <Label styleClass="field-label" text="Resolución:" GridPane.rowIndex="1"/>
+                <ComboBox fx:id="dpiBox" prefWidth="240" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+            </GridPane>
+        </VBox>
+        <VBox spacing="10" styleClass="section">
+            <Label styleClass="section-label" text="3. Dónde guardar las imágenes"/>
+            <fx:include fx:id="folder" source="file-field.fxml"/>
+            <HBox alignment="CENTER_LEFT" spacing="8">
+                <Label styleClass="field-label" text="Nombre de los archivos:"/>
+                <TextField fx:id="baseNameField" promptText="informe" HBox.hgrow="ALWAYS"/>
+            </HBox>
+            <Label styleClass="field-hint" text="Se crearán como informe_001.png, informe_002.png… (el número es el de la página)."/>
+        </VBox>
+        <fx:include fx:id="runBar" source="run-bar.fxml"/>
+    </VBox>
+</ScrollPane>

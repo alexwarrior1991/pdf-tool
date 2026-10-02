@@ -1,5 +1,7 @@
 package com.alejandro.pdftool;
 
+import com.alejandro.pdftool.gui.GuiLauncher;
+
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -13,6 +15,16 @@ public class App {
     private static final double MM_TO_PT = 72.0 / 25.4;
 
     public static void main(String[] args) {
+        // Sin argumentos (p. ej. doble clic en el JAR) o con «gui» se abre la interfaz gráfica
+        if (args.length == 0 || args[0].equals("gui")) {
+            if (GuiLauncher.launch(args.length == 0 ? args : Arrays.copyOfRange(args, 1, args.length))) {
+                return;
+            }
+            if (args.length > 0) {
+                System.exit(1);
+            }
+            System.out.println("(No hay entorno gráfico disponible: se muestra la ayuda de la línea de comandos)");
+        }
         int exitCode = run(args);
         if (exitCode != 0) {
             System.exit(exitCode);
@@ -310,6 +322,7 @@ public class App {
     static void printHelp() {
         System.out.println("""
                 PDF Tool - comandos:
+                  (sin argumentos)  abre la interfaz gráfica; también: gui
                   merge -o <out.pdf> <in1.pdf> <carpeta> [...]  (Acepta archivos y/o carpetas)
                   split <in.pdf> -ranges "1-3,7,10-*" -o <prefix>   |   split <in.pdf> -every <N> -o <prefix>
                   extract <in.pdf> -o <out.pdf> -pages "5,1-3"      (en el orden indicado)

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<ScrollPane fitToWidth="true" styleClass="page-scroll" stylesheets="@app.css" xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.alejandro.pdftool.gui.views.DecryptController">
+    <VBox spacing="16" styleClass="page">
+        <VBox spacing="4">
+            <Label styleClass="view-title" text="Quitar contraseña"/>
+            <Label styleClass="view-description" wrapText="true"
+                   text="Crea una copia sin protección de un PDF cifrado. Hace falta la contraseña de propietario (la que permite cambiar los permisos), no basta con la de apertura."/>
+        </VBox>
+        <VBox spacing="10" styleClass="section">
+            <Label styleClass="section-label" text="1. PDF protegido"/>
+            <fx:include fx:id="input" source="file-field.fxml"/>
+        </VBox>
+        <VBox spacing="10" styleClass="section">
+            <Label styleClass="section-label" text="2. Contraseña de propietario"/>
+            <HBox>
+                <PasswordField fx:id="passwordField" prefWidth="320" promptText="Contraseña"/>
+            </HBox>
+        </VBox>
+        <VBox spacing="10" styleClass="section">
+            <Label styleClass="section-label" text="3. Dónde guardar la copia sin protección"/>
+            <fx:include fx:id="output" source="file-field.fxml"/>
+        </VBox>
+        <fx:include fx:id="runBar" source="run-bar.fxml"/>
+    </VBox>
+</ScrollPane>
